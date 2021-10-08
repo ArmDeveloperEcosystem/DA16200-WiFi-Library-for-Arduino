@@ -1,22 +1,22 @@
 /*
   This example  prints the board's MAC address, and
-  scans for available WiFi networks using the NINA module.
+  scans for available WiFi networks using the DA16200 module.
   Every ten seconds, it scans again. It doesn't actually
   connect to any network, so no encryption scheme is specified.
   BSSID and WiFi channel are printed
 
   Circuit:
-  * Board with NINA module (Arduino MKR WiFi 1010, MKR VIDOR 4000 and UNO WiFi Rev.2)
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
   This example is based on ScanNetworks
 
   created 1 Mar 2017
   by Arturo Guadalupi
+  modified 8 October 2021
+  by Sandeep Misty to port to DA16200
 */
 
-
-#include <SPI.h>
-#include <WiFiNINA.h>
+#include <DA16200_WiFi.h>
 
 void setup() {
   //Initialize serial and wait for port to open:
