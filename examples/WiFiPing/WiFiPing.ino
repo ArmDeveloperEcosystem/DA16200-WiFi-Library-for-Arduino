@@ -5,20 +5,23 @@
   Then it continuously pings given host specified by IP Address or name.
 
   Circuit:
-  * Board with NINA module (Arduino MKR WiFi 1010, MKR VIDOR 4000 and UNO WiFi Rev.2)
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
   created 13 July 2010
   by dlf (Metodo2 srl)
   modified 09 June 2016
   by Petar Georgiev
+  modified 8 October 2021
+  by Sandeep Mistry to port to DA16200
 */
-#include <SPI.h>
-#include <WiFiNINA.h>
 
-#include "arduino_secrets.h" 
+#include <DA16200_WiFi.h>
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
+#include "arduino_secrets.h"
+
 char ssid[] = SECRET_SSID;        // your network SSID (name)
-char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
+char pass[] = SECRET_PASS;       // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
 // Specify IP address or hostname
@@ -50,9 +53,6 @@ void setup() {
     Serial.println(ssid);
     // Connect to WPA/WPA2 network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 5 seconds for connection:
-    delay(5000);
   }
 
   // you're connected now, so print out the data:
