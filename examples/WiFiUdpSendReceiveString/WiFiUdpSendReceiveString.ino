@@ -1,24 +1,28 @@
 /*
   WiFi UDP Send and Receive String
 
- This sketch waits for a UDP packet on localPort using the WiFi module.
- When a packet is received an Acknowledge packet is sent to the client on port remotePort
+  This sketch waits for a UDP packet on localPort using the WiFi module.
+  When a packet is received an Acknowledge packet is sent to the client on port remotePort
 
- created 30 December 2012
- by dlf (Metodo2 srl)
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
- */
+  created 30 December 2012
+  by dlf (Metodo2 srl)
+  modified 8 October 2021
+  by Sandeep Mistry to port to DA16200
+*/
 
-
-#include <SPI.h>
-#include <WiFiNINA.h>
+#include <DA16200_WiFi.h>
 #include <WiFiUdp.h>
 
-int status = WL_IDLE_STATUS;
-#include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;        // your network SSID (name)
-char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
+#include "arduino_secrets.h"
+
+int status = WL_IDLE_STATUS;
+
+char ssid[] = SECRET_SSID;   // your network SSID (name)
+char pass[] = SECRET_PASS;   // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key index number (needed only for WEP)
 
 unsigned int localPort = 2390;      // local port to listen on
@@ -53,9 +57,6 @@ void setup() {
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 10 seconds for connection:
-    delay(10000);
   }
   Serial.println("Connected to WiFi");
   printWifiStatus();
@@ -66,7 +67,6 @@ void setup() {
 }
 
 void loop() {
-
   // if there's data available, read a packet
   int packetSize = Udp.parsePacket();
   if (packetSize) {
