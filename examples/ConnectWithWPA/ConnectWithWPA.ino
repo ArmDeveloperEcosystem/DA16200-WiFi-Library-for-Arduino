@@ -1,18 +1,24 @@
 /*
- This example connects to an unencrypted WiFi network.
- Then it prints the MAC address of the WiFi module,
- the IP address obtained, and other network details.
+  This example connects to an WPA encrypted WiFi network.
+  Then it prints the MAC address of the WiFi module,
+  the IP address obtained, and other network details.
 
- created 13 July 2010
- by dlf (Metodo2 srl)
- modified 31 May 2012
- by Tom Igoe
- */
-#include <SPI.h>
-#include <WiFiNINA.h>
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
-#include "arduino_secrets.h" 
+  created 13 July 2010
+  by dlf (Metodo2 srl)
+  modified 31 May 2012
+  by Tom Igoe
+  modified 8 October 2021
+  by Sandeep Mistry to port to DA16200
+*/
+
+#include <DA16200_WiFi.h>
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
+#include "arduino_secrets.h"
+
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
@@ -42,13 +48,10 @@ void setup() {
     Serial.println(ssid);
     // Connect to WPA/WPA2 network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 10 seconds for connection:
-    delay(10000);
   }
 
   // you're connected now, so print out the data:
-  Serial.print("You're connected to the network");
+  Serial.println("You're connected to the network");
   printCurrentNet();
   printWifiData();
 
@@ -64,7 +67,6 @@ void printWifiData() {
   // print your board's IP address:
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
-  Serial.println(ip);
   Serial.println(ip);
 
   // print your MAC address:
@@ -87,12 +89,12 @@ void printCurrentNet() {
 
   // print the received signal strength:
   long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
+  Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
 
   // print the encryption type:
   byte encryption = WiFi.encryptionType();
-  Serial.print("Encryption Type:");
+  Serial.print("Encryption Type: ");
   Serial.println(encryption, HEX);
   Serial.println();
 }
