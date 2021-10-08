@@ -1,15 +1,17 @@
 /*
- * This example checks if the firmware loaded on the NINA module
- * is updated.
- *
- * Circuit:
- * - Board with NINA module (Arduino MKR WiFi 1010, MKR VIDOR 4000 and UNO WiFi Rev.2)
- *
- * Created 17 October 2018 by Riccardo Rosario Rizzo
- * This code is in the public domain.
- */
-#include <SPI.h>
-#include <WiFiNINA.h>
+   This example checks if the firmware loaded on the DA16200 module
+   is updated.
+
+   Circuit:
+   - SparkFun Qwiic WiFi Shield - DA16200 attached
+
+   Created 17 October 2018 by Riccardo Rosario Rizzo
+   Modified 8 October 2021 by Sandeep Mistry to port to DA16200
+
+   This code is in the public domain.
+*/
+
+#include <DA16200_WiFi.h>
 
 void setup() {
   // Initialize serial
@@ -19,7 +21,7 @@ void setup() {
   }
 
   // Print a welcome message
-  Serial.println("WiFiNINA firmware check.");
+  Serial.println("DA16200 firmware check.");
   Serial.println();
 
   // check for the WiFi module:
