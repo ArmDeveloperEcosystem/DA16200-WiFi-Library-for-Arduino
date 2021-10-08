@@ -1,7 +1,6 @@
-
 #include "WiFiModem.h"
 
-//#define DEBUG_PRINT Serial
+// #define DEBUG_PRINT Serial
 
 WiFiModem::WiFiModem(HardwareSerial& serial, int resetPin) :
   _serial(&serial),
@@ -15,15 +14,16 @@ WiFiModem::~WiFiModem()
 
 void WiFiModem::begin(unsigned long baudrate)
 {
+  _serial->begin(baudrate);
+
   if (_resetPin > -1) {
+    delay(250);
     pinMode(_resetPin, OUTPUT);
     digitalWrite(_resetPin, LOW);
-    delay(100);
+    delay(250);
     digitalWrite(_resetPin, HIGH);
-    delay(100);
+    delay(250);
   }
-
-  _serial->begin(baudrate);
 
   memset(&_extendedResponse, 0x00, sizeof(_extendedResponse));
 }
