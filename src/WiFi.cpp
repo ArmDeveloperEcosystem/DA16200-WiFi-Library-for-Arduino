@@ -1,3 +1,5 @@
+#include "WiFiUdp.h"
+
 #include "WiFi.h"
 
 WiFiClass::WiFiClass(HardwareSerial& serial, int resetPin) :
@@ -591,24 +593,76 @@ void WiFiClass::onExtendedResponseHandler(void* context, const char* prefix, Str
 
 void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
 {
-  _extendedResponse = prefix;
+  // TODO: check prefix
+  if (strcmp("+TRDTC:", prefix) == 0 || strcmp("+TRDUS:", prefix) == 0) {
+    int commaCount = 0;
 
-  while (1) {
-    if (s.available()) {
-      char c = s.read();
+    _extendedResponse = "";
 
-      _extendedResponse += c;
+    while (1) {
+      if (s.available()) {
+        char c = s.read();
 
-      if (c == '\n') {
-        if (_extendedResponse.endsWith("\r\n")) {
-          break;
+        _extendedResponse += c;
+
+        if (c == ',') {
+          commaCount++;
+
+          if (commaCount == 4) {
+            int cid;
+            int ipAddrOctets[4] = {0, 0, 0, 0};
+            int port;
+            int length;
+
+            sscanf(
+              _extendedResponse.c_str(),
+              "%d,%d.%d.%d.%d,%d,%d,",
+              &cid,
+              &ipAddrOctets[0], &ipAddrOctets[1], &ipAddrOctets[2], &ipAddrOctets[3],
+              &port, &length
+            );
+
+            int read = 0;
+
+            if (cid == 2 && WiFiUDP::_inst != NULL) {
+              read = WiFiUDP::_inst->receive(IPAddress(ipAddrOctets[0], ipAddrOctets[1], ipAddrOctets[2], ipAddrOctets[3]), port, s, length);
+            }
+
+            length -= read;
+
+            while (length) {
+              if (s.available()) {
+                s.read();
+
+                length--;
+              }
+            }
+
+            break;
+          }
         }
       }
     }
-  }
+  } else {
+    _extendedResponse = prefix;
 
-  if (_extendedResponse.startsWith("+WFJAP:1")) {
-    _status = WL_CONNECTED;
+    while (1) {
+      if (s.available()) {
+        char c = s.read();
+
+        _extendedResponse += c;
+
+        if (c == '\n') {
+          if (_extendedResponse.endsWith("\r\n")) {
+            break;
+          }
+        }
+      }
+    }
+
+    if (_extendedResponse.startsWith("+WFJAP:1")) {
+      _status = WL_CONNECTED;
+    }
   }
 }
 
