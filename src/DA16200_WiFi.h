@@ -2,5 +2,6 @@
 #define _DA16200_WIFI__H_
 
 #include "WiFi.h"
+#include "WiFiClient.h"
 
 #endif

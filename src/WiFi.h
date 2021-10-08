@@ -84,6 +84,7 @@ class WiFiClass {
     void handleExtendedResponse(const char* prefix, Stream& s);
 
   protected:
+    friend class WiFiClient;
     friend class WiFiUDP;
 
     WiFiModem _modem;
