@@ -1,10 +1,9 @@
 #include "WiFiModem.h"
 
-// #define DEBUG_PRINT Serial
-
 WiFiModem::WiFiModem(HardwareSerial& serial, int resetPin) :
   _serial(&serial),
-  _resetPin(resetPin)
+  _resetPin(resetPin),
+  _debug(NULL)
 {
 }
 
@@ -104,11 +103,11 @@ int WiFiModem::read()
 {
   int b = _serial->read();
 
-#ifdef DEBUG_PRINT
-  if (b != -1) {
-    DEBUG_PRINT.write((uint8_t)b);
+  if (_debug != NULL)  {
+    if (b != -1) {
+      _debug->write((uint8_t)b);
+    }
   }
-#endif
 
   return b;
 }
@@ -120,18 +119,18 @@ int WiFiModem::peek()
 
 size_t WiFiModem::write(uint8_t b)
 {
-#ifdef DEBUG_PRINT
-  DEBUG_PRINT.write(b);
-#endif
+  if (_debug != NULL)  {
+    _debug->write(b);
+  }
 
   return _serial->write(b);
 }
 
 size_t WiFiModem::write(const uint8_t* buffer, size_t size)
 {
-#ifdef DEBUG_PRINT
-  DEBUG_PRINT.write(buffer, size);
-#endif
+  if (_debug != NULL)  {
+    _debug->write(buffer, size);
+  }
 
   return _serial->write(buffer, size);
 }
@@ -144,6 +143,16 @@ int WiFiModem::availableForWrite()
 void WiFiModem::flush()
 {
   _serial->flush();
+}
+
+void WiFiModem::debug(Print& p)
+{
+  _debug = &p;
+}
+
+void WiFiModem::noDebug()
+{
+  _debug = NULL;
 }
 
 int WiFiModem::waitForResponse(int timeout)

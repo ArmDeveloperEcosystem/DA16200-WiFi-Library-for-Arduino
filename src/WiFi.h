@@ -74,6 +74,9 @@ class WiFiClass {
     int ping(const String &hostname);
     int ping(IPAddress host);
 
+    void debug(Print& p);
+    void noDebug();
+
   private:
     int init();
 

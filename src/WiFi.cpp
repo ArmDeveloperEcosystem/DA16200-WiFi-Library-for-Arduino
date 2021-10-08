@@ -414,6 +414,16 @@ int WiFiClass::ping(IPAddress host)
   return maxTime;
 }
 
+void WiFiClass::debug(Print& p)
+{
+  _modem.debug(p);
+}
+
+void WiFiClass::noDebug()
+{
+  _modem.noDebug();
+}
+
 int WiFiClass::init()
 {
   _status = WL_NO_SHIELD;

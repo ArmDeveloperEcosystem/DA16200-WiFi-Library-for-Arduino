@@ -29,12 +29,17 @@ class WiFiModem : public Stream {
     virtual int availableForWrite();
     virtual void flush();
 
+    void debug(Print& p);
+    void noDebug();
+
   private:
     int waitForResponse(int timeout);
 
   private:
     HardwareSerial* _serial;
     int _resetPin;
+
+    Print* _debug;
 
     struct {
       void(*handler)(void*, const char*, Stream&);
