@@ -1,33 +1,31 @@
 /*
   Web client
 
- This sketch connects to a website (http://www.google.com)
- using the WiFi module.
+  This sketch connects to a website (http://www.google.com)
+  using the WiFi module.
 
- This example is written for a network using WPA encryption. For
- WEP or WPA, change the WiFi.begin() call accordingly.
+  This example is written for a network using WPA encryption. For
+  WEP or WPA, change the WiFi.begin() call accordingly.
 
- This example is written for a network using WPA encryption. For
- WEP or WPA, change the WiFi.begin() call accordingly.
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
- Circuit:
- * Board with NINA module (Arduino MKR WiFi 1010, MKR VIDOR 4000 and UNO WiFi Rev.2)
+  created 13 July 2010
+  by dlf (Metodo2 srl)
+  modified 31 May 2012
+  by Tom Igoe
+  modified 8 October 2021
+  by Sandeep Mistry to port to DA16200
+*/
 
- created 13 July 2010
- by dlf (Metodo2 srl)
- modified 31 May 2012
- by Tom Igoe
- */
+#include <DA16200_WiFi.h>
 
-
-#include <SPI.h>
-#include <WiFiNINA.h>
-
-#include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;        // your network SSID (name)
+#include "arduino_secrets.h"
+
+char ssid[] = SECRET_SSID;    // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
-int keyIndex = 0;            // your network key index number (needed only for WEP)
+int keyIndex = 0;             // your network key index number (needed only for WEP)
 
 int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
@@ -65,9 +63,6 @@ void setup() {
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 10 seconds for connection:
-    delay(10000);
   }
   Serial.println("Connected to WiFi");
   printWifiStatus();
@@ -102,7 +97,6 @@ void loop() {
     while (true);
   }
 }
-
 
 void printWifiStatus() {
   // print the SSID of the network you're attached to:
