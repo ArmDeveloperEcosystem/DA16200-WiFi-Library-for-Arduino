@@ -1,7 +1,7 @@
 /*
   Web client
 
-  This sketch connects to a website (http://www.google.com)
+  This sketch connects to a website (http://www.example.com)
   using the WiFi module.
 
   This example is written for a network using WPA encryption. For
@@ -30,8 +30,8 @@ int keyIndex = 0;             // your network key index number (needed only for 
 int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
-//IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
-char server[] = "www.google.com";    // name address for Google (using DNS)
+//IPAddress server(93, 184, 216, 34);  // numeric IP for example.com (no DNS)
+char server[] = "www.example.com";    // name address for example.com (using DNS)
 
 // Initialize the Ethernet client library
 // with the IP address and port of the server
@@ -72,8 +72,8 @@ void setup() {
   if (client.connect(server, 80)) {
     Serial.println("connected to server");
     // Make a HTTP request:
-    client.println("GET /search?q=arduino HTTP/1.1");
-    client.println("Host: www.google.com");
+    client.println("GET / HTTP/1.1");
+    client.println("Host: www.example.com");
     client.println("Connection: close");
     client.println();
   }
