@@ -30,23 +30,11 @@ class WiFiUDP : public UDP {
     virtual IPAddress remoteIP();
     virtual uint16_t remotePort();
 
-  protected:
-    friend class WiFiClass;
-
-    int receive(IPAddress ip, uint16_t port, Stream& s, int length);
-
-    static WiFiUDP* _inst;
-
   private:
-    IPAddress _remoteIp;
-    uint16_t _remotePort;
+    static WiFiUDP* _inst;
 
     uint8_t _txBuffer[1500];
     int _txBufferIndex;
-
-    uint8_t _rxBuffer[1500];
-    int _rxBufferIndex;
-    int _rxBufferLength;
 };
 
 #endif

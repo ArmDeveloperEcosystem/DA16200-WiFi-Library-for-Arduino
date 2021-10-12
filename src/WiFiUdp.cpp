@@ -5,11 +5,7 @@
 WiFiUDP* WiFiUDP::_inst = NULL;
 
 WiFiUDP::WiFiUDP() :
-  _remoteIp((uint32_t)0),
-  _remotePort(0),
-  _txBufferIndex(0),
-  _rxBufferIndex(0),
-  _rxBufferLength(0)
+  _txBufferIndex(0)
 {
 }
 
@@ -36,8 +32,8 @@ uint8_t WiFiUDP::begin(uint16_t port)
 
   _inst = this;
   _txBufferIndex = 0;
-  _rxBufferIndex = 0;
-  _rxBufferLength = 0;
+  WiFi._socketBuffer.begin(2);
+  WiFi._socketBuffer.clear(2);
 
   return 1;
 }
@@ -48,11 +44,8 @@ void WiFiUDP::stop()
     WiFi._modem.AT("+TRTRM", "=2");
 
     _inst = NULL;
-    _remoteIp = (uint32_t)0;
-    _remotePort = 0;
     _txBufferIndex = 0;
-    _rxBufferIndex = 0;
-    _rxBufferLength = 0;
+    WiFi._socketBuffer.clear(2);
   }
 }
 
@@ -66,8 +59,6 @@ int WiFiUDP::beginPacket(IPAddress ip, uint16_t port)
     return 0;
   }
 
-  _remoteIp = ip;
-  _remotePort = port;
   _txBufferIndex = 0;
 
   return 1;
@@ -116,17 +107,16 @@ size_t WiFiUDP::write(const uint8_t* buffer, size_t size)
 
 int WiFiUDP::parsePacket()
 {
-  _rxBufferIndex = 0;
-  _rxBufferLength = 0;
+  WiFi._socketBuffer.clear(2);
 
-  WiFi._modem.poll(20);
+  WiFi._modem.poll(0);
 
-  return _rxBufferLength;
+  return WiFi._socketBuffer.available(2);
 }
 
 int WiFiUDP::available()
 {
-  return (_rxBufferLength - _rxBufferIndex);
+  return WiFi._socketBuffer.available(2);
 }
 
 int WiFiUDP::read()
@@ -144,15 +134,7 @@ int WiFiUDP::read()
 
 int WiFiUDP::read(unsigned char* buffer, size_t len)
 {
-  int avail = available();
-  if (avail > len) {
-    len = avail;
-  }
-
-  memcpy(buffer, _rxBuffer + _rxBufferIndex, len);
-  _rxBufferIndex += len;
-
-  return len;
+  return WiFi._socketBuffer.read(2, buffer, len);
 }
 
 int WiFiUDP::read(char* buffer, size_t len)
@@ -163,7 +145,7 @@ int WiFiUDP::read(char* buffer, size_t len)
 int WiFiUDP::peek()
 {
   if (available()) {
-    return _rxBuffer[_rxBufferIndex];
+    return WiFi._socketBuffer.peek(2);
   }
 
   return -1;
@@ -175,27 +157,10 @@ void WiFiUDP::flush()
 
 IPAddress WiFiUDP::remoteIP()
 {
-  return _remoteIp;
+  return WiFi._socketBuffer.remoteIP(2);
 }
 
 uint16_t WiFiUDP::remotePort()
 {
-  return _remotePort;
-}
-
-int WiFiUDP::receive(IPAddress ip, uint16_t port, Stream& s, int length)
-{
-  _remoteIp = ip;
-  _remotePort = port;
-  _rxBufferLength = 0;
-
-  while (_rxBufferLength < length) {
-    if (s.available()) {
-      _rxBuffer[_rxBufferLength++] = s.read();
-    }
-  }
-
-  _rxBufferIndex = 0;
-
-  return _rxBufferLength;
+  return WiFi._socketBuffer.remotePort(2);
 }

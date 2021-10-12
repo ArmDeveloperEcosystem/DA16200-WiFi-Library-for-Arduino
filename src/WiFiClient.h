@@ -24,15 +24,10 @@ class WiFiClient : public Client {
 
     using Print::write;
 
-  protected:
-    friend class WiFiClass;
-
-    int receive(IPAddress ip, uint16_t port, Stream& s, int length);
-
-    static WiFiClient* _inst;
-
   private:
-    RingBufferN<8096> _rxBuffer;
+    static WiFiClient* _inst;
+    
+    int _cid;
 };
 
 #endif

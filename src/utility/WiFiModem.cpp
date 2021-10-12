@@ -21,7 +21,7 @@ void WiFiModem::begin(unsigned long baudrate)
     digitalWrite(_resetPin, LOW);
     delay(250);
     digitalWrite(_resetPin, HIGH);
-    delay(250);
+    delay(500);
   }
 
   memset(&_extendedResponse, 0x00, sizeof(_extendedResponse));
@@ -35,6 +35,8 @@ void WiFiModem::end()
 
 int WiFiModem::AT(const char* command, const char* args, int timeout)
 {
+  poll(0);
+
   this->print("AT");
   this->print(command);
   if (args != NULL) {
@@ -64,6 +66,20 @@ int WiFiModem::ESC(const char* sequence, const char* args, const uint8_t* buffer
 void WiFiModem::poll(unsigned long timeout) {
   int bufferIndex = 0;
   char buffer[32 + 1];
+
+  if (!this->available()) {
+    for (unsigned long start = millis(); (millis() - start) < timeout;) {
+      if (this->available()) {
+        break;
+      }
+    }
+
+    if (!this->available()) {
+      return;
+    }
+  }
+
+  timeout = 10;
 
   for (unsigned long start = millis(); (millis() - start) < timeout;) {
     if (this->available()) {

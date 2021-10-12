@@ -1,6 +1,3 @@
-#include "WiFiClient.h"
-#include "WiFiUdp.h"
-
 #include "WiFi.h"
 
 WiFiClass::WiFiClass(HardwareSerial& serial, int resetPin) :
@@ -327,6 +324,7 @@ int32_t WiFiClass::RSSI(uint8_t networkItem)
 void WiFiClass::end()
 {
   _modem.end();
+  _socketBuffer.clear();
 
   _status = WL_NO_SHIELD;
 
@@ -633,23 +631,7 @@ void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
               &port, &length
             );
 
-            int read = 0;
-
-            if (cid == 1 && WiFiClient::_inst != NULL) {
-              read = WiFiClient::_inst->receive(IPAddress(ipAddrOctets[0], ipAddrOctets[1], ipAddrOctets[2], ipAddrOctets[3]), port, s, length);
-            } else if (cid == 2 && WiFiUDP::_inst != NULL) {
-              read = WiFiUDP::_inst->receive(IPAddress(ipAddrOctets[0], ipAddrOctets[1], ipAddrOctets[2], ipAddrOctets[3]), port, s, length);
-            }
-
-            length -= read;
-
-            while (length) {
-              if (s.available()) {
-                s.read();
-
-                length--;
-              }
-            }
+            _socketBuffer.receive(cid, IPAddress(ipAddrOctets[0], ipAddrOctets[1], ipAddrOctets[2], ipAddrOctets[3]), port, s, length);
 
             break;
           }
@@ -676,7 +658,7 @@ void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
     if (_extendedResponse.startsWith("+WFJAP:1")) {
       _status = WL_CONNECTED;
     } else if (_extendedResponse.startsWith("+TRXTC:1")) {
-      WiFiClient::_inst = NULL;
+      _socketBuffer.disconnect(1);
     }
   }
 }

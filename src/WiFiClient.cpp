@@ -30,7 +30,10 @@ int WiFiClient::connect(IPAddress ip, uint16_t port)
   }
 
   _inst = this;
-  _rxBuffer.clear();
+  _cid = 1;
+  WiFi._socketBuffer.begin(_cid);
+  WiFi._socketBuffer.clear(_cid);
+  WiFi._socketBuffer.connect(_cid);
 
   return 1;
 }
@@ -59,7 +62,7 @@ size_t WiFiClient::write(const uint8_t* buf, size_t size)
     size = 2048;
   }
 
-  sprintf(args, "1%d,0,0,", size);
+  sprintf(args, "%d%d,0,0,", _cid, size);
 
   if (WiFi._modem.ESC("S", args, buf, size) != 0) {
     setWriteError();
@@ -71,11 +74,9 @@ size_t WiFiClient::write(const uint8_t* buf, size_t size)
 
 int WiFiClient::available()
 {
-  if (!_rxBuffer.available()) {
-    WiFi._modem.poll(20);
-  }
+  WiFi._modem.poll(0);
 
-  return _rxBuffer.available();
+  return WiFi._socketBuffer.available(_cid);
 }
 
 int WiFiClient::read()
@@ -98,17 +99,13 @@ int WiFiClient::read(uint8_t* buf, size_t size)
     size = avail;
   }
 
-  for (int i = 0; i < size; i++) {
-    *buf++ = _rxBuffer.read_char();
-  }
-
-  return size;
+  return WiFi._socketBuffer.read(_cid, buf, size);
 }
 
 int WiFiClient::peek()
 {
   if (available()) {
-    return _rxBuffer.peek();
+    return  WiFi._socketBuffer.peek(_cid);
   }
 
   return -1;
@@ -121,39 +118,24 @@ void WiFiClient::flush()
 void WiFiClient::stop()
 {
   if (_inst == this) {
-    WiFi._modem.AT("+TRTRM", "=1");
+    if (WiFi._socketBuffer.connected(_cid)) {
+      WiFi._modem.AT("+TRTRM", "=1");
+    }
 
     _inst = NULL;
-    _rxBuffer.clear();
+    WiFi._socketBuffer.clear(_cid);
+    WiFi._socketBuffer.disconnect(_cid);
   }
 }
 
 uint8_t WiFiClient::connected()
 {
-  return _rxBuffer.available() || (_inst == this);
+  WiFi._modem.poll(0);
+
+  return WiFi._socketBuffer.available(_cid) || WiFi._socketBuffer.connected(_cid);
 }
 
 WiFiClient::operator bool()
 {
   return (_inst == this);
-}
-
-int WiFiClient::receive(IPAddress ip, uint16_t port, Stream& s, int length)
-{
-  int read = 0;
-
-  while (read < length) {
-    if (_rxBuffer.isFull()) {
-      // TODO: ensure no RX buffer overflow ... close sock if overflow?
-      Serial.println("*** WiFiClient::receive => _rxBuffer.isFull() ***");
-      while (1);
-    }
-
-    if (s.available()) {
-      _rxBuffer.store_char(s.read());
-      read++;
-    }
-  }
-
-  return read;
 }

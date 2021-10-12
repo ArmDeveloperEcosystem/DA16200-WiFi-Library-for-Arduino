@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "utility/WiFiModem.h"
+#include "utility/WiFiSocketBuffer.h"
 
 typedef enum {
   WL_NO_SHIELD = 255,
@@ -91,6 +92,7 @@ class WiFiClass {
     friend class WiFiUDP;
 
     WiFiModem _modem;
+    WiFiSocketBuffer _socketBuffer;
     String _extendedResponse;
 
   private:
