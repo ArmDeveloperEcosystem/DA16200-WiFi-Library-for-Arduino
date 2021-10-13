@@ -89,6 +89,7 @@ class WiFiClass {
 
   protected:
     friend class WiFiClient;
+    friend class WiFiServer;
     friend class WiFiUDP;
 
     WiFiModem _modem;

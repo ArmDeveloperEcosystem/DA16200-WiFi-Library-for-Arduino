@@ -1,3 +1,5 @@
+#include "WiFiServer.h"
+
 #include "WiFi.h"
 
 WiFiClass::WiFiClass(HardwareSerial& serial, int resetPin) :
@@ -441,7 +443,7 @@ int WiFiClass::init()
     return 0;
   }
 
-  if (_modem.AT("+TRTALL") != 0) {
+  if (_modem.AT("+TRTALL", NULL, 5000) != 0) {
     end();
 
     return 0;
@@ -603,7 +605,7 @@ void WiFiClass::onExtendedResponseHandler(void* context, const char* prefix, Str
 void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
 {
   // TODO: check prefix
-  if (strcmp("+TRDTC:", prefix) == 0 || strcmp("+TRDUS:", prefix) == 0) {
+  if (strcmp("+TRDTC:", prefix) == 0 || strcmp("+TRDTS:", prefix) == 0 || strcmp("+TRDUS:", prefix) == 0) {
     int commaCount = 0;
 
     _extendedResponse = "";
@@ -659,6 +661,39 @@ void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
       _status = WL_CONNECTED;
     } else if (_extendedResponse.startsWith("+TRXTC:1")) {
       _socketBuffer.disconnect(1);
+    } else if (_extendedResponse.startsWith("+TRCTS:0")) {
+      int cid;
+      int ipAddrOctets[4] = {0, 0, 0, 0};
+      int port;
+
+      sscanf(
+        _extendedResponse.c_str(),
+        "+TRCTS:%d,%d.%d.%d.%d,%d",
+        &cid,
+        &ipAddrOctets[0], &ipAddrOctets[1], &ipAddrOctets[2], &ipAddrOctets[3],
+        &port
+      );
+
+      if (WiFiServer::_inst != NULL) {
+        WiFiServer::_inst->connect(cid, IPAddress(ipAddrOctets[0], ipAddrOctets[1], ipAddrOctets[2], ipAddrOctets[3]), port);
+      }
+    } else if (_extendedResponse.startsWith("+TRXTS:0")) {
+      int cid;
+      int ipAddrOctets[4] = {0, 0, 0, 0};
+      int port;
+      int length;
+
+      sscanf(
+        _extendedResponse.c_str(),
+        "+TRXTS:%d,%d.%d.%d.%d,%d",
+        &cid,
+        &ipAddrOctets[0], &ipAddrOctets[1], &ipAddrOctets[2], &ipAddrOctets[3],
+        &port
+      );
+
+      if (WiFiServer::_inst != NULL) {
+        WiFiServer::_inst->disconnect(cid, IPAddress(ipAddrOctets[0], ipAddrOctets[1], ipAddrOctets[2], ipAddrOctets[3]), port);
+      }
     }
   }
 }

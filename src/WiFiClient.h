@@ -24,10 +24,20 @@ class WiFiClient : public Client {
 
     using Print::write;
 
+    virtual IPAddress remoteIP();
+    virtual uint16_t remotePort();
+
+  protected:
+    friend class WiFiServer;
+
+    WiFiClient(int cid, IPAddress remoteIp, uint16_t remotePort);
+
   private:
     static WiFiClient* _inst;
     
     int _cid;
+    IPAddress _remoteIp;
+    uint16_t _remotePort;
 };
 
 #endif
