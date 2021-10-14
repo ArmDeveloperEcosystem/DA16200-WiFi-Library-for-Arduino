@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "WiFiServer.h"
 
 #include "WiFi.h"
@@ -418,6 +420,31 @@ int WiFiClass::ping(IPAddress host)
   }
 
   return maxTime;
+}
+
+unsigned long WiFiClass::getTime()
+{
+  time_t t = 0;
+
+  if (_modem.AT("+TIME", "=?") == 0) {
+    struct tm tm;
+
+    memset(&tm, 0x00, sizeof(&tm));
+
+    sscanf(
+      _extendedResponse.c_str(), "+TIME:%d-%d-%d,%d:%d:%d\n",
+      &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
+      &tm.tm_hour, &tm.tm_min, &tm.tm_sec
+    );
+
+    tm.tm_year -= 1900;
+		tm.tm_mon -= 1;
+		tm.tm_isdst = -1;
+
+		t = mktime(&tm);
+  }
+
+  return t;
 }
 
 void WiFiClass::debug(Print& p)

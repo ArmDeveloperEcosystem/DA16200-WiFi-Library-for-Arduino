@@ -75,6 +75,8 @@ class WiFiClass {
     int ping(const String &hostname);
     int ping(IPAddress host);
 
+    unsigned long getTime();
+
     void debug(Print& p);
     void noDebug();
 
