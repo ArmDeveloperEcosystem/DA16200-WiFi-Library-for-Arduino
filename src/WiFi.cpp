@@ -343,7 +343,7 @@ int WiFiClass::hostByName(const char* aHostname, IPAddress& aResult)
 
   sprintf(args, "=%s", aHostname);
 
-  for (int retry = 0; retry < 10 && (uint32_t)aResult == 0; retry++) {
+  for (int retry = 0; retry < 30; retry++) {
     if (_modem.AT("+NWHOST", args, 10000) != 0) {
       return 0;
     }
@@ -357,6 +357,12 @@ int WiFiClass::hostByName(const char* aHostname, IPAddress& aResult)
     );
 
     aResult = IPAddress(ipAddr[0], ipAddr[1], ipAddr[2], ipAddr[3]);
+
+    if ((uint32_t)aResult == 0) {
+      delay(500);
+    } else {
+      break;
+    }
   }
 
   if ((uint32_t)aResult == 0) {
