@@ -1,7 +1,7 @@
 int resetPin = 7;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial); // wait for the serial monitor to be opened
 
   SERIAL_PORT_HARDWARE_OPEN.begin(115200);
