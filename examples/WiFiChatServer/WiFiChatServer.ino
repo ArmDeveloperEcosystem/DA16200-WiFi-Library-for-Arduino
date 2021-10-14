@@ -1,29 +1,31 @@
 /*
- Chat  Server
+  Chat  Server
 
- A simple server that distributes any incoming messages to all
- connected clients.  To use, telnet to your device's IP address and type.
- You can see the client's input in the serial monitor as well.
+  A simple server that distributes any incoming messages to all
+  connected clients.  To use, telnet to your device's IP address and type.
+  You can see the client's input in the serial monitor as well.
 
- This example is written for a network using WPA encryption. For
- WEP or WPA, change the WiFi.begin() call accordingly.
+  This example is written for a network using WPA encryption. For
+  WEP or WPA, change the WiFi.begin() call accordingly.
 
 
- Circuit:
- * Board with NINA module (Arduino MKR WiFi 1010, MKR VIDOR 4000 and UNO WiFi Rev.2)
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
- created 18 Dec 2009
- by David A. Mellis
- modified 31 May 2012
- by Tom Igoe
+  created 18 Dec 2009
+  by David A. Mellis
+  modified 31 May 2012
+  by Tom Igoe
+  modified 14 October 2021
+  by Sandeep Mistry to port to DA16200
 
- */
+*/
 
-#include <SPI.h>
-#include <WiFiNINA.h>
+#include <DA16200_WiFi.h>
 
-#include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
+#include "arduino_secrets.h"
+
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
@@ -60,9 +62,6 @@ void setup() {
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 10 seconds for connection:
-    delay(10000);
   }
 
   // start the server:
