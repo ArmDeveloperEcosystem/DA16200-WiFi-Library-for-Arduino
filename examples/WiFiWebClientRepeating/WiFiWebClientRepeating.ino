@@ -1,24 +1,29 @@
 /*
   Repeating WiFi Web Client
 
- This sketch connects to a a web server and makes a request
- using a WiFi equipped Arduino board.
+  This sketch connects to a a web server and makes a request
+  using a WiFi equipped Arduino board.
 
- created 23 April 2012
- modified 31 May 2012
- by Tom Igoe
- modified 13 Jan 2014
- by Federico Vanzati
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
- http://www.arduino.cc/en/Tutorial/WifiWebClientRepeating
- This code is in the public domain.
- */
+  created 23 April 2012
+  modified 31 May 2012
+  by Tom Igoe
+  modified 13 Jan 2014
+  by Federico Vanzati
+  modified 14 October 2021
+  by Sandeep Mistry to port to DA16200
 
-#include <SPI.h>
-#include <WiFiNINA.h>
+  http://www.arduino.cc/en/Tutorial/WifiWebClientRepeating
+  This code is in the public domain.
+*/
 
-#include "arduino_secrets.h" 
+#include <DA16200_WiFi.h>
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
+#include "arduino_secrets.h"
+
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key index number (needed only for WEP)
@@ -60,9 +65,6 @@ void setup() {
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 10 seconds for connection:
-    delay(10000);
   }
   // you're connected now, so print out the status:
   printWifiStatus();
