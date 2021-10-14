@@ -1,30 +1,32 @@
 /*
   WiFi Web Server LED Blink
 
- A simple web server that lets you blink an LED via the web.
- This sketch will print the IP address of your WiFi module (once connected)
- to the Serial Monitor. From there, you can open that address in a web browser
- to turn on and off the LED on pin 9.
+  A simple web server that lets you blink an LED via the web.
+  This sketch will print the IP address of your WiFi module (once connected)
+  to the Serial Monitor. From there, you can open that address in a web browser
+  to turn on and off the LED on pin 9.
 
- If the IP address of your board is yourAddress:
- http://yourAddress/H turns the LED on
- http://yourAddress/L turns it off
+  If the IP address of your board is yourAddress:
+  http://yourAddress/H turns the LED on
+  http://yourAddress/L turns it off
 
- This example is written for a network using WPA encryption. For
- WEP or WPA, change the WiFi.begin() call accordingly.
+  This example is written for a network using WPA encryption. For
+  WEP or WPA, change the WiFi.begin() call accordingly.
 
- Circuit:
- * Board with NINA module (Arduino MKR WiFi 1010, MKR VIDOR 4000 and UNO WiFi Rev.2)
- * LED attached to pin 9
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
- created 25 Nov 2012
- by Tom Igoe
- */
-#include <SPI.h>
-#include <WiFiNINA.h>
+  created 25 Nov 2012
+  by Tom Igoe
+  modified 14 October 2021
+  by Sandeep Mistry to port to DA16200
+*/
 
-#include "arduino_secrets.h" 
+#include <DA16200_WiFi.h>
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
+#include "arduino_secrets.h"
+
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;                 // your network key index number (needed only for WEP)
@@ -34,7 +36,7 @@ WiFiServer server(80);
 
 void setup() {
   Serial.begin(9600);      // initialize serial communication
-  pinMode(9, OUTPUT);      // set the LED pin mode
+  pinMode(13, OUTPUT);      // set the LED pin mode
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
@@ -55,8 +57,6 @@ void setup() {
 
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
-    // wait 10 seconds for connection:
-    delay(10000);
   }
   server.begin();                           // start the web server on port 80
   printWifiStatus();                        // you're connected now, so print out the status
@@ -85,8 +85,8 @@ void loop() {
             client.println();
 
             // the content of the HTTP response follows the header:
-            client.print("Click <a href=\"/H\">here</a> turn the LED on pin 9 on<br>");
-            client.print("Click <a href=\"/L\">here</a> turn the LED on pin 9 off<br>");
+            client.print("Click <a href=\"/H\">here</a> turn the LED on pin 13 on<br>");
+            client.print("Click <a href=\"/L\">here</a> turn the LED on pin 13 off<br>");
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -101,10 +101,10 @@ void loop() {
 
         // Check to see if the client request was "GET /H" or "GET /L":
         if (currentLine.endsWith("GET /H")) {
-          digitalWrite(9, HIGH);               // GET /H turns the LED on
+          digitalWrite(13, HIGH);               // GET /H turns the LED on
         }
         if (currentLine.endsWith("GET /L")) {
-          digitalWrite(9, LOW);                // GET /L turns the LED off
+          digitalWrite(13, LOW);                // GET /L turns the LED off
         }
       }
     }
