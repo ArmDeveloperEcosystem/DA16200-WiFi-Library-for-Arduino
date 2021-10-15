@@ -1,18 +1,24 @@
 /*
- This example connects to an unencrypted WiFi network.
- Then it prints the MAC address of the board,
- the IP address obtained, and other network details.
+  This example connects to an unencrypted WiFi network.
+  Then it prints the MAC address of the board,
+  the IP address obtained, and other network details.
 
- created 13 July 2010
- by dlf (Metodo2 srl)
- modified 31 May 2012
- by Tom Igoe
- */
-#include <SPI.h>
-#include <WiFiNINA.h>
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
 
-#include "arduino_secrets.h" 
+  created 13 July 2010
+  by dlf (Metodo2 srl)
+  modified 31 May 2012
+  by Tom Igoe
+  modified 15 October 2021
+  by Sandeep Mistry to port to DA16200
+*/
+
+#include <DA16200_WiFi.h>
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
+#include "arduino_secrets.h"
+
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
@@ -39,13 +45,10 @@ void setup() {
     Serial.print("Attempting to connect to open SSID: ");
     Serial.println(ssid);
     status = WiFi.begin(ssid);
-
-    // wait 10 seconds for connection:
-    delay(10000);
   }
 
   // you're connected now, so print out the data:
-  Serial.print("You're connected to the network");
+  Serial.println("You're connected to the network");
   printCurrentNet();
   printWifiData();
 }
