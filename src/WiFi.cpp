@@ -84,10 +84,20 @@ uint8_t* WiFiClass::macAddress(uint8_t* mac)
 
 int WiFiClass::begin(const char* ssid)
 {
-  return begin(ssid, NULL);
+  return begin(ssid, 0, NULL, ENC_TYPE_NONE);
+}
+
+int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key)
+{
+  return begin(ssid, key_idx, key, ENC_TYPE_WEP);
 }
 
 int WiFiClass::begin(const char* ssid, const char *passphrase)
+{
+  return begin(ssid, 0, passphrase, ENC_TYPE_TKIP);
+}
+
+int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t encType)
 {
   if (_status == WL_NO_SHIELD) {
     if (!init()) {
@@ -103,14 +113,18 @@ int WiFiClass::begin(const char* ssid, const char *passphrase)
   }
 
   char args[1 + 32 + 1 + 63 + 1];
+  const char* command = "+WFJAPA";
 
-  if (passphrase != NULL) {
-    sprintf(args, "=%s,'%s'", ssid, passphrase);
-  } else {
+  if (encType == ENC_TYPE_NONE) {
     sprintf(args, "=%s", ssid);
+  } else if (encType == ENC_TYPE_WEP) {
+    command = "+WFJAP";
+    sprintf(args, "=%s,1,%d,%s", ssid, key_idx, key);
+  } else {
+    sprintf(args, "=%s,'%s'", ssid, key);
   }
 
-  if (_modem.AT("+WFJAPA", args) != 0) {
+  if (_modem.AT(command, args) != 0) {
     _status = WL_CONNECT_FAILED;
     return _status;
   }
@@ -229,7 +243,7 @@ uint8_t WiFiClass::encryptionType()
       encType = ENC_TYPE_CCMP;
     } else if (_extendedResponse.indexOf("key_mgmt=WPA-PSK") != -1) {
       encType = ENC_TYPE_TKIP;
-    } else if (_extendedResponse.indexOf("key_mgmt=WEP") != -1) { // TODO: verify
+    } else if (_extendedResponse.indexOf("group_cipher=WEP") != -1) {
       encType = ENC_TYPE_WEP;
     } else if (_extendedResponse.indexOf("key_mgmt=NONE") != -1) {
       encType = ENC_TYPE_NONE;
@@ -582,7 +596,7 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
     encType = ENC_TYPE_CCMP;
   } else if (strnstr(flags, "[WPA-PSK", flagsLength) != NULL) {
     encType = ENC_TYPE_TKIP;
-  } else if (strnstr(flags, "[WEP", flagsLength) != NULL) { // TODO: verify
+  } else if (strnstr(flags, "[WEP", flagsLength) != NULL) {
     encType = ENC_TYPE_WEP;
   } else if (strcmp(flags, "[ESS]") == 0) {
     encType = ENC_TYPE_NONE;

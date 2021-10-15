@@ -50,6 +50,7 @@ class WiFiClass {
     uint8_t* macAddress(uint8_t* mac);
 
     int begin(const char* ssid);
+    int begin(const char* ssid, uint8_t key_idx, const char* key);
     int begin(const char* ssid, const char *passphrase);
     int disconnect();
 
@@ -82,6 +83,8 @@ class WiFiClass {
     void noDebug();
 
   private:
+    int begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t encType);
+
     int init();
 
     int parseScanNetworksItem(uint8_t networkItem);
