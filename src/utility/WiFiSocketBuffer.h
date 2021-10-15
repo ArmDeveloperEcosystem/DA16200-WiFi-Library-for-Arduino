@@ -2,6 +2,7 @@
 #define _WIFI_SOCKET_BUFFER_H_
 
 #include <Arduino.h>
+#include <IPAddress.h>
 
 #define WIFI_SOCKET_TCP_BUFFER_SIZE 4096
 #define WIFI_SOCKET_UDP_BUFFER_SIZE 1500
