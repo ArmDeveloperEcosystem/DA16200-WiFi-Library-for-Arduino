@@ -49,6 +49,7 @@ class WiFiClass {
     const char* firmwareVersion();
     uint8_t* macAddress(uint8_t* mac);
 
+    int begin(const char* ssid);
     int begin(const char* ssid, const char *passphrase);
     int disconnect();
 

@@ -82,6 +82,11 @@ uint8_t* WiFiClass::macAddress(uint8_t* mac)
   return mac;
 }
 
+int WiFiClass::begin(const char* ssid)
+{
+  return begin(ssid, NULL);
+}
+
 int WiFiClass::begin(const char* ssid, const char *passphrase)
 {
   if (_status == WL_NO_SHIELD) {
@@ -99,7 +104,11 @@ int WiFiClass::begin(const char* ssid, const char *passphrase)
 
   char args[1 + 32 + 1 + 63 + 1];
 
-  sprintf(args, "=%s,'%s'", ssid, passphrase);
+  if (passphrase != NULL) {
+    sprintf(args, "=%s,'%s'", ssid, passphrase);
+  } else {
+    sprintf(args, "=%s", ssid);
+  }
 
   if (_modem.AT("+WFJAPA", args) != 0) {
     _status = WL_CONNECT_FAILED;
@@ -165,7 +174,7 @@ const char* WiFiClass::SSID()
     // TODO: validate prefix
     int ssidIndex = _extendedResponse.indexOf("\nssid=");
     if (ssidIndex != -1) {
-      sscanf(_extendedResponse.c_str() + ssidIndex + 1, "ssid=%32s\n", _ssid);
+      sscanf(_extendedResponse.c_str() + ssidIndex + 1, "ssid=%32[^\n]\n", _ssid);
     }
   }
 
@@ -222,7 +231,7 @@ uint8_t WiFiClass::encryptionType()
       encType = ENC_TYPE_TKIP;
     } else if (_extendedResponse.indexOf("key_mgmt=WEP") != -1) { // TODO: verify
       encType = ENC_TYPE_WEP;
-    } else if (_extendedResponse.indexOf("key_mgmt=OPEN") != -1) { // TODO: verify
+    } else if (_extendedResponse.indexOf("key_mgmt=NONE") != -1) {
       encType = ENC_TYPE_NONE;
     }
   }
@@ -535,7 +544,7 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
 
   sscanf(
     _scanExtendedResponse.c_str() + startIndex,
-    "%x:%x:%x:%x:%x:%x\t%d\t%d\t%64s\t%32s",
+    "%x:%x:%x:%x:%x:%x\t%d\t%d\t%64s\t%32[^\t\n]",
     &bssid[5], &bssid[4], &bssid[3], &bssid[2], &bssid[1], &bssid[0],
     &frequency,
     &rssi,
@@ -575,7 +584,7 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
     encType = ENC_TYPE_TKIP;
   } else if (strnstr(flags, "[WEP", flagsLength) != NULL) { // TODO: verify
     encType = ENC_TYPE_WEP;
-  } else if (strnstr(flags, "[OPEN", flagsLength) != NULL) { // TODO: verify
+  } else if (strcmp(flags, "[ESS]") == 0) {
     encType = ENC_TYPE_NONE;
   }
 
