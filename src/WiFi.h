@@ -85,6 +85,8 @@ class WiFiClass {
 
     unsigned long getTime();
 
+    void setTimeout(unsigned long timeout);
+
     void debug(Print& p);
     void noDebug();
 
@@ -127,6 +129,8 @@ class WiFiClass {
       IPAddress gateway;
       IPAddress subnet;
     } _config;
+
+    unsigned long _timeout;
 };
 
 extern WiFiClass WiFi;

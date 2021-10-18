@@ -5,9 +5,12 @@
 
 #include "WiFi.h"
 
+#define WIFI_DEFAULT_TIMEOUT (30 * 1000) // 30 seconds
+
 WiFiClass::WiFiClass(HardwareSerial& serial, int resetPin) :
   _modem(serial, resetPin),
-  _status(WL_NO_SHIELD)
+  _status(WL_NO_SHIELD),
+  _timeout(WIFI_DEFAULT_TIMEOUT)
 {
   _extendedResponse.reserve(64);
   _scanCache.networkItem = 255;
@@ -132,7 +135,7 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
 
   _status = WL_IDLE_STATUS;
 
-  for (unsigned long start = millis(); (millis() - start) < 30000;) {
+  for (unsigned long start = millis(); (millis() - start) < _timeout;) {
     _modem.poll(100);
 
     if (_status != WL_IDLE_STATUS) {
@@ -422,6 +425,8 @@ void WiFiClass::end()
   _config.localIp = (uint32_t)0;
   _config.gateway = (uint32_t)0;
   _config.subnet = (uint32_t)0;
+
+  _timeout = WIFI_DEFAULT_TIMEOUT;
 }
 
 int WiFiClass::hostByName(const char* aHostname, IPAddress& aResult)
@@ -532,6 +537,11 @@ unsigned long WiFiClass::getTime()
   }
 
   return t;
+}
+
+void WiFiClass::setTimeout(unsigned long timeout)
+{
+  _timeout = timeout;
 }
 
 void WiFiClass::debug(Print& p)
