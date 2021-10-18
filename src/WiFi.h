@@ -54,6 +54,12 @@ class WiFiClass {
     int begin(const char* ssid, const char *passphrase);
     int disconnect();
 
+    void config(IPAddress local_ip);
+    void config(IPAddress local_ip, IPAddress dns_server);
+    void config(IPAddress local_ip, IPAddress dns_server, IPAddress gateway);
+    void config(IPAddress local_ip, IPAddress dns_server, IPAddress gateway, IPAddress subnet);
+    void setDNS(IPAddress dns_server1);
+
     IPAddress localIP();
     IPAddress subnetMask();
     IPAddress gatewayIP();
@@ -115,6 +121,12 @@ class WiFiClass {
       uint8_t channel;
       int32_t rssi;
     } _scanCache;
+
+    struct {
+      IPAddress localIp;
+      IPAddress gateway;
+      IPAddress subnet;
+    } _config;
 };
 
 extern WiFiClass WiFi;

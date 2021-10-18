@@ -1,3 +1,4 @@
+#include <string.h>
 #include <time.h>
 
 #include "WiFiServer.h"
@@ -139,6 +140,26 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
     }
   }
 
+  if ((uint32_t)_config.localIp != 0) {
+    _modem.AT("+NWDHC", "=0");
+  } else {
+    _modem.AT("+NWDHC", "=1");
+  }
+
+  if ((uint32_t)_config.localIp != 0) {
+    char args[1 + 1 + 1 + 15 + 1 + 15 + 1 + 15 + 1];
+
+    sprintf(
+      args, "=%d,%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d",
+      0, // inferface
+      _config.localIp[0], _config.localIp[1], _config.localIp[2], _config.localIp[3],
+      _config.subnet[0], _config.subnet[1], _config.subnet[2], _config.subnet[3],
+      _config.gateway[0], _config.gateway[1], _config.gateway[2], _config.gateway[3]
+    );
+    
+    _modem.AT("+NWIP", args);
+  }
+
   if (_status != WL_CONNECTED) {
     _status = WL_CONNECT_FAILED;
   }
@@ -151,6 +172,45 @@ int WiFiClass::disconnect()
   _modem.AT("+WFQAP");
 
   _status = WL_DISCONNECTED;
+}
+
+void WiFiClass::config(IPAddress local_ip)
+{
+  IPAddress dns_server(0, 0, 0, 0);
+
+  config(local_ip, dns_server);
+}
+
+void WiFiClass::config(IPAddress local_ip, IPAddress dns_server)
+{
+  IPAddress gateway(local_ip[0], local_ip[1], local_ip[2], 1);
+
+  config(local_ip, dns_server, gateway);
+}
+
+void WiFiClass::config(IPAddress local_ip, IPAddress dns_server, IPAddress gateway)
+{
+  IPAddress subnet(255, 255, 255, 0);
+
+  config(local_ip, dns_server, gateway, subnet);
+}
+
+void WiFiClass::config(IPAddress local_ip, IPAddress dns_server, IPAddress gateway, IPAddress subnet)
+{
+  _config.localIp = local_ip;
+  _config.gateway = gateway;
+  _config.subnet = subnet;
+
+  setDNS(dns_server);
+}
+
+void WiFiClass::setDNS(IPAddress dns_server1)
+{
+  char args[1 + 15 + 1];
+
+  sprintf(args, "=%d.%d.%d.%d", dns_server1[0], dns_server1[1], dns_server1[2], dns_server1[3]);
+
+  _modem.AT("+NWDNS", args);
 }
 
 IPAddress WiFiClass::localIP()
@@ -358,6 +418,10 @@ void WiFiClass::end()
   memset(_firmwareVersion, 0x00, sizeof(_firmwareVersion));
   _scanCache.networkItem = 255;
   _scanExtendedResponse = "";
+
+  _config.localIp = (uint32_t)0;
+  _config.gateway = (uint32_t)0;
+  _config.subnet = (uint32_t)0;
 }
 
 int WiFiClass::hostByName(const char* aHostname, IPAddress& aResult)
@@ -590,13 +654,13 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
 
   int flagsLength = strlen(flags);
 
-  if (strnstr(flags, "[WPA-AUTO", flagsLength) != NULL) { // TODO: verify
+  if (strstr(flags, "[WPA-AUTO") != NULL) { // TODO: verify
     encType = ENC_TYPE_AUTO;
-  } else if (strnstr(flags, "[WPA2-PSK", flagsLength) != NULL) {
+  } else if (strstr(flags, "[WPA2-PSK") != NULL) {
     encType = ENC_TYPE_CCMP;
-  } else if (strnstr(flags, "[WPA-PSK", flagsLength) != NULL) {
+  } else if (strstr(flags, "[WPA-PSK") != NULL) {
     encType = ENC_TYPE_TKIP;
-  } else if (strnstr(flags, "[WEP", flagsLength) != NULL) {
+  } else if (strstr(flags, "[WEP") != NULL) {
     encType = ENC_TYPE_WEP;
   } else if (strcmp(flags, "[ESS]") == 0) {
     encType = ENC_TYPE_NONE;
@@ -715,6 +779,8 @@ void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
 
     if (_extendedResponse.startsWith("+WFJAP:1")) {
       _status = WL_CONNECTED;
+    } else if (_extendedResponse.startsWith("+WFJAP:0")) {
+      _status = WL_DISCONNECTED;
     } else if (_extendedResponse.startsWith("+TRXTC:1")) {
       _socketBuffer.disconnect(1);
     } else if (_extendedResponse.startsWith("+TRCTS:0")) {
