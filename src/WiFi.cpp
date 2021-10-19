@@ -230,6 +230,20 @@ uint8_t WiFiClass::beginAP(const char *ssid, const char* key, uint8_t channel)
     return _status;
   }
 
+  if ((uint32_t)_config.localIp != 0) {
+    char args[1 + 1 + 1 + 15 + 1 + 15 + 1 + 15 + 1];
+
+    sprintf(
+      args, "=%d,%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d",
+      _interface,
+      _config.localIp[0], _config.localIp[1], _config.localIp[2], _config.localIp[3],
+      _config.subnet[0], _config.subnet[1], _config.subnet[2], _config.subnet[3],
+      _config.gateway[0], _config.gateway[1], _config.gateway[2], _config.gateway[3]
+    );
+    
+    _modem.AT("+NWIP", args);
+  }
+
   if (_modem.AT("+NWDHS", "=1", 5000)) {
     _status = WL_AP_FAILED;
     return _status;
