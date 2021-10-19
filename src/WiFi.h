@@ -42,7 +42,7 @@ typedef enum {
 
 class WiFiClass {
   public:
-    WiFiClass(HardwareSerial& _serial, int resetPin);
+    WiFiClass(HardwareSerial& _serial);
     virtual ~WiFiClass();
 
     uint8_t status();
@@ -52,6 +52,12 @@ class WiFiClass {
     int begin(const char* ssid);
     int begin(const char* ssid, uint8_t key_idx, const char* key);
     int begin(const char* ssid, const char *passphrase);
+
+    uint8_t beginAP(const char *ssid);
+    uint8_t beginAP(const char *ssid, uint8_t channel);
+    uint8_t beginAP(const char *ssid, const char* key);
+    uint8_t beginAP(const char *ssid, const char* key, uint8_t channel);
+
     int disconnect();
 
     void config(IPAddress local_ip);
@@ -95,6 +101,8 @@ class WiFiClass {
 
     int init();
 
+    int setMode(int mode);
+
     int parseScanNetworksItem(uint8_t networkItem);
     int getNetworkIpInfo(int* iface, uint32_t* ipAddr, uint32_t* netmask, uint32_t* gw);
 
@@ -112,6 +120,8 @@ class WiFiClass {
 
   private:
     wl_status_t _status;
+    int _interface;
+    int _numConnectedSta;
     char _ssid[32 + 1];
     char _firmwareVersion[sizeof(WIFI_FIRMWARE_LATEST_VERSION)];
     String _scanExtendedResponse;

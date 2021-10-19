@@ -7,9 +7,11 @@
 
 #define WIFI_DEFAULT_TIMEOUT (30 * 1000) // 30 seconds
 
-WiFiClass::WiFiClass(HardwareSerial& serial, int resetPin) :
-  _modem(serial, resetPin),
+WiFiClass::WiFiClass(HardwareSerial& serial) :
+  _modem(serial),
   _status(WL_NO_SHIELD),
+  _interface(0),
+  _numConnectedSta(0),
   _timeout(WIFI_DEFAULT_TIMEOUT)
 {
   _extendedResponse.reserve(64);
@@ -28,12 +30,16 @@ uint8_t WiFiClass::status()
     return _status;
   }
 
-  if (_modem.AT("+WFSTAT") == 0) {
-    if (_extendedResponse.indexOf("bssid=") != -1) {
-      _status = WL_CONNECTED;
-    } else {
-      _status = WL_DISCONNECTED;
+  if (_interface == 0) {
+    if (_modem.AT("+WFSTAT") == 0) {
+      if (_extendedResponse.indexOf("bssid=") != -1) {
+        _status = WL_CONNECTED;
+      } else {
+        _status = WL_DISCONNECTED;
+      }
     }
+  } else {
+    _modem.poll(0);
   }
 
   return _status;
@@ -116,6 +122,11 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
     return _status;
   }
 
+  if (!setMode(0)) {
+    _status = WL_CONNECT_FAILED;
+    return _status;
+  }
+
   char args[1 + 32 + 1 + 63 + 1];
   const char* command = "+WFJAPA";
 
@@ -154,7 +165,7 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
 
     sprintf(
       args, "=%d,%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d",
-      0, // inferface
+      _interface,
       _config.localIp[0], _config.localIp[1], _config.localIp[2], _config.localIp[3],
       _config.subnet[0], _config.subnet[1], _config.subnet[2], _config.subnet[3],
       _config.gateway[0], _config.gateway[1], _config.gateway[2], _config.gateway[3]
@@ -170,9 +181,73 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
   return _status;
 }
 
+uint8_t WiFiClass::beginAP(const char *ssid)
+{
+  return beginAP(ssid, 1);
+}
+
+uint8_t WiFiClass::beginAP(const char *ssid, uint8_t channel)
+{
+  return beginAP(ssid, NULL, channel);
+}
+
+uint8_t WiFiClass::beginAP(const char *ssid, const char* key)
+{
+  return beginAP(ssid, key, 1);
+}
+
+uint8_t WiFiClass::beginAP(const char *ssid, const char* key, uint8_t channel)
+{
+  if (_status == WL_NO_SHIELD) {
+    if (!init()) {
+      return _status;
+    }
+  }
+
+  disconnect();
+
+  char args[1 + 32 + 4 + 63 + 1];
+
+  if (key == NULL) {
+    sprintf(args, "=%s,0", ssid);
+  } else {
+    sprintf(args, "=%s,4,2,%s", ssid, key);
+  }
+
+  if (_modem.AT("+WFSAP", args, 5000)) {
+    _status = WL_AP_FAILED;
+    return _status;
+  }
+
+  if (!setMode(1)) {
+    _status = WL_AP_FAILED;
+    return _status;
+  }
+
+  sprintf(args, "=%d", channel);
+  if (_modem.AT("+WFAPCH", args)) {
+    _status = WL_AP_FAILED;
+    return _status;
+  }
+
+  if (_modem.AT("+NWDHS", "=1", 5000)) {
+    _status = WL_AP_FAILED;
+    return _status;
+  }
+
+  _status = WL_AP_LISTENING;
+  _numConnectedSta = 0;
+
+  return _status;
+}
+
 int WiFiClass::disconnect()
 {
-  _modem.AT("+WFQAP");
+  if (_interface == 0) {
+    _modem.AT("+WFQAP");
+  } else {
+    _modem.AT("+WFTAP");
+  }
 
   _status = WL_DISCONNECTED;
 }
@@ -220,7 +295,7 @@ IPAddress WiFiClass::localIP()
 {
   uint32_t ipAddr = 0;
 
-  getNetworkIpInfo(NULL, &ipAddr, NULL, NULL);
+  getNetworkIpInfo(&_interface, &ipAddr, NULL, NULL);
 
   return ipAddr;
 }
@@ -229,7 +304,7 @@ IPAddress WiFiClass::subnetMask()
 {
   uint32_t netmask = 0;
 
-  getNetworkIpInfo(NULL, NULL, &netmask, NULL);
+  getNetworkIpInfo(&_interface, NULL, &netmask, NULL);
 
   return netmask;
 }
@@ -238,7 +313,7 @@ IPAddress WiFiClass::gatewayIP()
 {
   uint32_t gw = 0;
 
-  getNetworkIpInfo(NULL, NULL, NULL, &gw);
+  getNetworkIpInfo(&_interface, NULL, NULL, &gw);
 
   return gw;
 }
@@ -309,6 +384,10 @@ uint8_t WiFiClass::encryptionType()
     } else if (_extendedResponse.indexOf("group_cipher=WEP") != -1) {
       encType = ENC_TYPE_WEP;
     } else if (_extendedResponse.indexOf("key_mgmt=NONE") != -1) {
+      encType = ENC_TYPE_NONE;
+    }
+
+    if (_interface == 1 && encType == ENC_TYPE_UNKNOWN) {
       encType = ENC_TYPE_NONE;
     }
   }
@@ -417,6 +496,7 @@ void WiFiClass::end()
   _socketBuffer.clear();
 
   _status = WL_NO_SHIELD;
+  _numConnectedSta = 0;
 
   memset(_firmwareVersion, 0x00, sizeof(_firmwareVersion));
   _scanCache.networkItem = 255;
@@ -486,7 +566,11 @@ int WiFiClass::ping(IPAddress host)
 {
   char args[3 + 15 + 2 + 1];
 
-  sprintf(args, "=0,%d.%d.%d.%d,1", host[0], host[1], host[2], host[3]);
+  sprintf(
+    args, "=%d,%d.%d.%d.%d,1",
+    _interface,
+    host[0], host[1], host[2], host[3]
+  );
 
   int result = _modem.AT("+NWPING", args, 10000);
   if (result == -100) {
@@ -567,12 +651,6 @@ int WiFiClass::init()
     return 0;
   }
 
-  if (_modem.AT("+WFMODE", "=0") != 0) {
-    end();
-
-    return 0;
-  }
-
   if (_modem.AT("+TRTALL", NULL, 5000) != 0) {
     end();
 
@@ -592,6 +670,33 @@ int WiFiClass::init()
   _scanExtendedResponse = "";
 
   return 1;
+}
+
+int WiFiClass::setMode(int mode)
+{
+  // TODO: check the current mode before setting and restarting ...
+
+  char args[3];
+
+  sprintf(args, "=%d", mode);
+  if (_modem.AT("+WFMODE", args) != 0) {
+    return 0;
+  }
+
+  _interface = -1;
+  if (_modem.AT("+RESTART") != 0) {
+    return 0;
+  }
+
+  for (unsigned long start = millis(); (millis() - start) < 5000;) {
+    _modem.poll(100);
+
+    if (_interface != -1) {
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
@@ -791,6 +896,14 @@ void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
       _status = WL_CONNECTED;
     } else if (_extendedResponse.startsWith("+WFJAP:0")) {
       _status = WL_DISCONNECTED;
+    } else if (_extendedResponse.startsWith("+WFCST:")) {
+      _status = WL_AP_CONNECTED;
+      _numConnectedSta++;
+    } else if (_extendedResponse.startsWith("+WFDST:")) {
+      _numConnectedSta--;
+      if (_numConnectedSta < 1) {
+        _status = WL_AP_LISTENING;
+      }
     } else if (_extendedResponse.startsWith("+TRXTC:1")) {
       _socketBuffer.disconnect(1);
     } else if (_extendedResponse.startsWith("+TRCTS:0")) {
@@ -826,8 +939,14 @@ void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
       if (WiFiServer::_inst != NULL) {
         WiFiServer::_inst->disconnect(cid, IPAddress(ipAddrOctets[0], ipAddrOctets[1], ipAddrOctets[2], ipAddrOctets[3]), port);
       }
+    } else if (_extendedResponse.startsWith("+INIT:DONE,")) {
+      sscanf(
+        _extendedResponse.c_str(),
+        "+INIT:DONE,%d",
+        &_interface
+      );
     }
   }
 }
 
-WiFiClass WiFi(SERIAL_PORT_HARDWARE, 7);
+WiFiClass WiFi(SERIAL_PORT_HARDWARE);

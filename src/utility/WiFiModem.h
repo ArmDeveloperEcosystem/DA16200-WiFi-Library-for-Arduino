@@ -5,7 +5,7 @@
 
 class WiFiModem : public Stream {
   public:
-    WiFiModem(HardwareSerial& serial, int resetPin);
+    WiFiModem(HardwareSerial& serial);
     virtual ~WiFiModem();
 
     void begin(unsigned long baudrate);
@@ -37,7 +37,6 @@ class WiFiModem : public Stream {
 
   private:
     HardwareSerial* _serial;
-    int _resetPin;
 
     Print* _debug;
 
