@@ -11,21 +11,27 @@
     http://yourAddress/H turns the LED on
     http://yourAddress/L turns it off
 
+  Circuit:
+  - SparkFun Qwiic WiFi Shield - DA16200 attached
+
   created 25 Nov 2012
   by Tom Igoe
   adapted to WiFi AP by Adafruit
- */
+  modified 19 October 2021
+  by Sandeep Mistry to port to DA16200
+*/
 
-#include <SPI.h>
-#include <WiFiNINA.h>
-#include "arduino_secrets.h" 
+#include <DA16200_WiFi.h>
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;        // your network SSID (name)
-char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
-int keyIndex = 0;                // your network key index number (needed only for WEP)
+#include "arduino_secrets.h"
+
+char ssid[] = SECRET_SSID;    // your network SSID (name)
+char pass[] = SECRET_PASS;    // your network password (use for WPA)
 
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
+
 WiFiServer server(80);
 
 void setup() {
@@ -51,7 +57,7 @@ void setup() {
     Serial.println("Please upgrade the firmware");
   }
 
-  // by default the local IP address will be 192.168.4.1
+  // by default the local IP address will be 10.0.0.1
   // you can override it with the following:
   // WiFi.config(IPAddress(10, 0, 0, 1));
 
@@ -59,16 +65,13 @@ void setup() {
   Serial.print("Creating access point named: ");
   Serial.println(ssid);
 
-  // Create open network. Change this line if you want to create an WEP network:
-  status = WiFi.beginAP(ssid, pass);
+  // Create open network. Change this line if you want to create an WPA network:
+  status = WiFi.beginAP(ssid); // status = WiFi.beginAP(ssid, pass);
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
     // don't continue
     while (true);
   }
-
-  // wait 10 seconds for connection:
-  delay(10000);
 
   // start the web server on port 80
   server.begin();
@@ -92,7 +95,7 @@ void loop() {
       Serial.println("Device disconnected from AP");
     }
   }
-  
+
   WiFiClient client = server.available();   // listen for incoming clients
 
   if (client) {                             // if you get a client,
