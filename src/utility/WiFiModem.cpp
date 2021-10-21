@@ -1,7 +1,9 @@
 #include "WiFiModem.h"
 
-WiFiModem::WiFiModem(HardwareSerial& serial) :
+WiFiModem::WiFiModem(HardwareSerial& serial, int rtcWakePin, int wakeUpPin) :
   _serial(&serial),
+  _rtcWakePin(rtcWakePin),
+  _wakeUpPin(wakeUpPin),
   _debug(NULL)
 {
 }
@@ -12,6 +14,9 @@ WiFiModem::~WiFiModem()
 
 void WiFiModem::begin(unsigned long baudrate)
 {
+  pinMode(_rtcWakePin, OUTPUT);
+  digitalWrite(_rtcWakePin, LOW);
+
   _serial->begin(baudrate);
 
   memset(&_extendedResponse, 0x00, sizeof(_extendedResponse));
@@ -20,6 +25,9 @@ void WiFiModem::begin(unsigned long baudrate)
 void WiFiModem::end()
 {
   _serial->end();
+
+  pinMode(_rtcWakePin, INPUT);
+  detachInterrupt(_wakeUpPin);
 }
 
 int WiFiModem::AT(const char* command, const char* args, int timeout)
@@ -92,11 +100,23 @@ void WiFiModem::poll(unsigned long timeout) {
     }
   }
 }
+void WiFiModem::wakeup()
+{
+  digitalWrite(_rtcWakePin, HIGH);
+  delayMicroseconds(250);
+  digitalWrite(_rtcWakePin, LOW);
+}
 
 void WiFiModem::onExtendedResponse(void(*handler)(void*, const char*, Stream&), void* context)
 {
   _extendedResponse.handler = handler;
   _extendedResponse.context = context;
+}
+
+void WiFiModem::onIrq(void (*handler)(void))
+{
+  pinMode(_wakeUpPin, INPUT);
+  attachInterrupt(_wakeUpPin, handler, RISING);
 }
 
 int WiFiModem::available()

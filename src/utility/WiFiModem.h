@@ -5,18 +5,21 @@
 
 class WiFiModem : public Stream {
   public:
-    WiFiModem(HardwareSerial& serial);
+    WiFiModem(HardwareSerial& serial, int rtcWakePin, int wakeUpPin);
     virtual ~WiFiModem();
 
     void begin(unsigned long baudrate);
     void end();
 
     void onExtendedResponse(void (*handler)(void*, const char*, Stream&), void* context);
+    void onIrq(void (*handler)(void));
 
-    int AT(const char* command = "", const char* args = NULL, int timeout = 1000);
-    int ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, int timeout = 1000);
+    int AT(const char* command, const char* args, int timeout);
+    int ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, int timeout);
 
     void poll(unsigned long timeout);
+
+    void wakeup();
 
     // from Stream
     virtual int available();
@@ -37,6 +40,8 @@ class WiFiModem : public Stream {
 
   private:
     HardwareSerial* _serial;
+    int _rtcWakePin;
+    int _wakeUpPin;
 
     Print* _debug;
 

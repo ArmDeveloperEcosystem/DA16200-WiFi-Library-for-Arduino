@@ -26,14 +26,14 @@ uint8_t WiFiUDP::begin(uint16_t port)
 
   sprintf(args, "=%d", port);
 
-  if (WiFi._modem.AT("+TRUSE", args) != 0) {
+  if (WiFi.AT("+TRUSE", args) != 0) {
     return 0;
   }
 
   _inst = this;
   _txBufferIndex = 0;
-  WiFi._socketBuffer.begin(2);
-  WiFi._socketBuffer.clear(2);
+  WiFi.socketBuffer().begin(2);
+  WiFi.socketBuffer().clear(2);
 
   return 1;
 }
@@ -41,11 +41,11 @@ uint8_t WiFiUDP::begin(uint16_t port)
 void WiFiUDP::stop()
 {
   if (_inst == this) {
-    WiFi._modem.AT("+TRTRM", "=2");
+    WiFi.AT("+TRTRM", "=2");
 
     _inst = NULL;
     _txBufferIndex = 0;
-    WiFi._socketBuffer.clear(2);
+    WiFi.socketBuffer().clear(2);
   }
 }
 
@@ -55,7 +55,7 @@ int WiFiUDP::beginPacket(IPAddress ip, uint16_t port)
 
   sprintf(args, "=%d.%d.%d.%d,%d", ip[0], ip[1], ip[2], ip[3], port);
 
-  if (WiFi._modem.AT("+TRUR", args) != 0) {
+  if (WiFi.AT("+TRUR", args) != 0) {
     return 0;
   }
 
@@ -81,7 +81,7 @@ int WiFiUDP::endPacket()
 
   sprintf(args, "2%d,0,0,", _txBufferIndex);
 
-  int result = WiFi._modem.ESC("S", args, _txBuffer, _txBufferIndex);
+  int result = WiFi.ESC("S", args, _txBuffer, _txBufferIndex);
 
   _txBufferIndex = 0;
 
@@ -107,16 +107,16 @@ size_t WiFiUDP::write(const uint8_t* buffer, size_t size)
 
 int WiFiUDP::parsePacket()
 {
-  WiFi._socketBuffer.clear(2);
+  WiFi.socketBuffer().clear(2);
 
-  WiFi._modem.poll(0);
+  WiFi.poll(0);
 
-  return WiFi._socketBuffer.available(2);
+  return WiFi.socketBuffer().available(2);
 }
 
 int WiFiUDP::available()
 {
-  return WiFi._socketBuffer.available(2);
+  return WiFi.socketBuffer().available(2);
 }
 
 int WiFiUDP::read()
@@ -134,7 +134,7 @@ int WiFiUDP::read()
 
 int WiFiUDP::read(unsigned char* buffer, size_t len)
 {
-  return WiFi._socketBuffer.read(2, buffer, len);
+  return WiFi.socketBuffer().read(2, buffer, len);
 }
 
 int WiFiUDP::read(char* buffer, size_t len)
@@ -145,7 +145,7 @@ int WiFiUDP::read(char* buffer, size_t len)
 int WiFiUDP::peek()
 {
   if (available()) {
-    return WiFi._socketBuffer.peek(2);
+    return WiFi.socketBuffer().peek(2);
   }
 
   return -1;
@@ -157,10 +157,10 @@ void WiFiUDP::flush()
 
 IPAddress WiFiUDP::remoteIP()
 {
-  return WiFi._socketBuffer.remoteIP(2);
+  return WiFi.socketBuffer().remoteIP(2);
 }
 
 uint16_t WiFiUDP::remotePort()
 {
-  return WiFi._socketBuffer.remotePort(2);
+  return WiFi.socketBuffer().remotePort(2);
 }

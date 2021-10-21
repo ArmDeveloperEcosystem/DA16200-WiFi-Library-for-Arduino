@@ -42,7 +42,7 @@ typedef enum {
 
 class WiFiClass {
   public:
-    WiFiClass(HardwareSerial& _serial);
+    WiFiClass(HardwareSerial& _serial, int rtcWakePin, int wakeUpPin);
     virtual ~WiFiClass();
 
     uint8_t status();
@@ -91,10 +91,27 @@ class WiFiClass {
 
     unsigned long getTime();
 
+    void lowPowerMode();
+    void noLowPowerMode();
+
     void setTimeout(unsigned long timeout);
 
     void debug(Print& p);
     void noDebug();
+
+  protected:
+    friend class WiFiClient;
+    friend class WiFiServer;
+    friend class WiFiUDP;
+
+    int AT(const char* command = "", const char* args = NULL, int timeout = 1000);
+    int ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, int timeout = 1000);
+
+    void poll(unsigned long timeout);
+
+    void wakeup();
+
+    WiFiSocketBuffer& socketBuffer();
 
   private:
     int begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t encType);
@@ -108,17 +125,15 @@ class WiFiClass {
 
     static void onExtendedResponseHandler(void* context, const char* prefix, Stream& s);
     void handleExtendedResponse(const char* prefix, Stream& s);
+    static void onIrq();
+    void handleIrq();
 
-  protected:
-    friend class WiFiClient;
-    friend class WiFiServer;
-    friend class WiFiUDP;
-
+  private:
     WiFiModem _modem;
     WiFiSocketBuffer _socketBuffer;
     String _extendedResponse;
+    volatile int _irq;
 
-  private:
     wl_status_t _status;
     int _interface;
     int _numConnectedSta;
@@ -140,7 +155,10 @@ class WiFiClass {
       IPAddress subnet;
     } _config;
 
+    int _lowPowerMode;
     unsigned long _timeout;
+
+    int _run;
 };
 
 extern WiFiClass WiFi;

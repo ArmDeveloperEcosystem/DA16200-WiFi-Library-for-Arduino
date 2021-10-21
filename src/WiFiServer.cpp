@@ -22,10 +22,10 @@ WiFiClient WiFiServer::available(uint8_t* status)
 {
   for (int i = 0; i < 2; i++) {
     if (WiFi._socketBuffer.available(_cid)) {
-      return WiFiClient(_cid, WiFi._socketBuffer.remoteIP(_cid), WiFi._socketBuffer.remotePort(_cid));
+      return WiFiClient(_cid, WiFi.socketBuffer().remoteIP(_cid), WiFi.socketBuffer().remotePort(_cid));
     }
 
-    WiFi._modem.poll(_cid);
+    WiFi.poll(_cid);
   }
 
   return WiFiClient(-1, (uint32_t)0, 0);
@@ -37,20 +37,21 @@ void WiFiServer::begin()
     return;
   }
 
-  WiFi._modem.AT("+TRTRM", "=0", 5000);
+  WiFi.AT("+TRTRM", "=0", 5000);
+  WiFi.AT("+TRSAVE", NULL, 5000);
 
   char args[1 + 5 + 1];
 
   sprintf(args, "=%d", _port);
 
-  if (WiFi._modem.AT("+TRTS", args, 1000) != 0) {
+  if (WiFi.AT("+TRTS", args, 1000) != 0) {
     return;
   }
 
   _cid = 0;
 
-  WiFi._socketBuffer.begin(_cid);
-  WiFi._socketBuffer.clear(_cid);
+  WiFi.socketBuffer().begin(_cid);
+  WiFi.socketBuffer().clear(_cid);
 
   _inst = this;
 }
@@ -79,7 +80,7 @@ size_t WiFiServer::write(const uint8_t *buf, size_t size)
         _clients[i].remotePort
       );
 
-      if (WiFi._modem.ESC("S", args, buf, size) != 0) {
+      if (WiFi.ESC("S", args, buf, size) != 0) {
         setWriteError();
       } else {
         written += size;

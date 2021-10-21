@@ -34,7 +34,7 @@ int WiFiClient::connect(IPAddress ip, uint16_t port)
 
   sprintf(args, "=%d.%d.%d.%d,%d,%d", ip[0], ip[1], ip[2], ip[3], port, 0);
 
-  if (WiFi._modem.AT("+TRTC", args, 10000) != 0) {
+  if (WiFi.AT("+TRTC", args, 10000) != 0) {
     return 0;
   }
 
@@ -42,9 +42,9 @@ int WiFiClient::connect(IPAddress ip, uint16_t port)
   _cid = 1;
   _remoteIp = ip;
   _remotePort = port;
-  WiFi._socketBuffer.begin(_cid);
-  WiFi._socketBuffer.clear(_cid);
-  WiFi._socketBuffer.connect(_cid);
+  WiFi.socketBuffer().begin(_cid);
+  WiFi.socketBuffer().clear(_cid);
+  WiFi.socketBuffer().connect(_cid);
 
   return 1;
 }
@@ -84,7 +84,7 @@ size_t WiFiClient::write(const uint8_t* buf, size_t size)
     _remotePort
   );
 
-  if (WiFi._modem.ESC("S", args, buf, size) != 0) {
+  if (WiFi.ESC("S", args, buf, size) != 0) {
     setWriteError();
     return 0;
   }
@@ -98,13 +98,13 @@ int WiFiClient::available()
     return 0;
   }
 
-  WiFi._modem.poll(0);
+  WiFi.poll(0);
 
-  if (WiFi._socketBuffer.remoteIP(_cid) != _remoteIp || WiFi._socketBuffer.remotePort(_cid) != _remotePort) {
+  if (WiFi.socketBuffer().remoteIP(_cid) != _remoteIp || WiFi.socketBuffer().remotePort(_cid) != _remotePort) {
     return 0;
   }
 
-  return WiFi._socketBuffer.available(_cid);
+  return WiFi.socketBuffer().available(_cid);
 }
 
 int WiFiClient::read()
@@ -131,13 +131,13 @@ int WiFiClient::read(uint8_t* buf, size_t size)
     size = avail;
   }
 
-  return WiFi._socketBuffer.read(_cid, buf, size);
+  return WiFi.socketBuffer().read(_cid, buf, size);
 }
 
 int WiFiClient::peek()
 {
   if (available()) {
-    return WiFi._socketBuffer.peek(_cid);
+    return WiFi.socketBuffer().peek(_cid);
   }
 
   return -1;
@@ -154,12 +154,12 @@ void WiFiClient::stop()
       if (WiFiServer::_inst != NULL) {
         WiFiServer::_inst->begin();
       }
-    } else if (WiFi._socketBuffer.connected(_cid)) {
-      WiFi._modem.AT("+TRTRM", "=1", 5000);
+    } else if (WiFi.socketBuffer().connected(_cid)) {
+      WiFi.AT("+TRTRM", "=1", 5000);
     }
 
-    WiFi._socketBuffer.clear(_cid);
-    WiFi._socketBuffer.disconnect(_cid);
+    WiFi.socketBuffer().clear(_cid);
+    WiFi.socketBuffer().disconnect(_cid);
 
     _cid = -1;
     _remoteIp = (uint32_t)0;
@@ -187,7 +187,7 @@ uint8_t WiFiClient::connected()
     return 0;
   }
 
-  return WiFi._socketBuffer.available(_cid) || WiFi._socketBuffer.connected(_cid);
+  return WiFi.socketBuffer().available(_cid) || WiFi.socketBuffer().connected(_cid);
 }
 
 WiFiClient::operator bool()
