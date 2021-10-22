@@ -47,6 +47,30 @@ uint8_t WiFiClass::status()
   return _status;
 }
 
+uint8_t WiFiClass::reasonCode()
+{
+  int reason = 0;
+
+  if (_status == WL_NO_SHIELD) {
+    init();
+
+    return _status;
+  }
+
+  if (this->AT("+WFSTAT") == 0 && _extendedResponse.startsWith("+WFSTAT:")) {
+    int reasonIndex = _extendedResponse.indexOf("\ndisconnect_reason=");
+    if (reasonIndex != -1) {
+      sscanf(_extendedResponse.c_str() + reasonIndex + 1, "disconnect_reason=%d\n", &reason);
+    }
+  }
+
+  if (reason < 0) {
+    reason *= -1;
+  }
+
+  return reason;
+}
+
 const char* WiFiClass::firmwareVersion()
 {
   if (_status == WL_NO_SHIELD) {

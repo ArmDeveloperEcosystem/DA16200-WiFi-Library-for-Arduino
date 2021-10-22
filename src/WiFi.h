@@ -46,6 +46,7 @@ class WiFiClass {
     virtual ~WiFiClass();
 
     uint8_t status();
+    uint8_t reasonCode();
     const char* firmwareVersion();
     uint8_t* macAddress(uint8_t* mac);
 
