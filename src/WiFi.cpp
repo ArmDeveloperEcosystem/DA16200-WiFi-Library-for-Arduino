@@ -211,12 +211,12 @@ uint8_t WiFiClass::beginAP(const char *ssid, const char* key, uint8_t channel)
     sprintf(args, "=%s,4,2,%s", ssid, key);
   }
 
-  if (this->AT("+WFSAP", args, 5000)) {
+  if (!setMode(1)) {
     _status = WL_AP_FAILED;
     return _status;
   }
 
-  if (!setMode(1)) {
+  if (this->AT("+WFSAP", args, 5000)) {
     _status = WL_AP_FAILED;
     return _status;
   }
