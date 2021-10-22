@@ -122,16 +122,16 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
     return _status;
   }
 
-  char args[1 + 32 + 1 + 63 + 1];
+  char args[1 + 1 + 32 + 1 + 1 + 63 + 1];
   const char* command = "+WFJAPA";
 
   if (encType == ENC_TYPE_NONE) {
-    sprintf(args, "=%s", ssid);
+    sprintf(args, "='%s'", ssid);
   } else if (encType == ENC_TYPE_WEP) {
     command = "+WFJAP";
-    sprintf(args, "=%s,1,%d,%s", ssid, key_idx, key);
+    sprintf(args, "='%s',1,%d,%s", ssid, key_idx, key);
   } else {
-    sprintf(args, "=%s,'%s'", ssid, key);
+    sprintf(args, "='%s','%s'", ssid, key);
   }
 
   if (this->AT(command, args) != 0) {
@@ -144,7 +144,9 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
   for (unsigned long start = millis(); (millis() - start) < _timeout;) {
     _modem.poll(100);
 
-    if (_status != WL_IDLE_STATUS) {
+    if (_status == WL_CONNECT_FAILED) {
+      return _status;
+    } else if (_status != WL_IDLE_STATUS) {
       break;
     }
   }
@@ -201,17 +203,17 @@ uint8_t WiFiClass::beginAP(const char *ssid, const char* key, uint8_t channel)
 
   disconnect();
 
-  char args[1 + 32 + 4 + 63 + 1];
-
-  if (key == NULL) {
-    sprintf(args, "=%s,0", ssid);
-  } else {
-    sprintf(args, "=%s,4,2,%s", ssid, key);
-  }
-
   if (!setMode(1)) {
     _status = WL_AP_FAILED;
     return _status;
+  }
+
+  char args[1 + 1 + 32 + 1 + 5 + 63 + 1 + 1];
+
+  if (key == NULL) {
+    sprintf(args, "='%s',0", ssid);
+  } else {
+    sprintf(args, "='%s',4,2,'%s'", ssid, key);
   }
 
   if (this->AT("+WFSAP", args, 5000)) {
@@ -791,18 +793,23 @@ int WiFiClass::init()
 
 int WiFiClass::setMode(int mode)
 {
-  // TODO: check the current mode before setting and restarting ...
-
   char args[3];
-
-  sprintf(args, "=%d", mode);
-  if (this->AT("+WFMODE", args) != 0) {
-    return 0;
-  }
-
+  
   _interface = -1;
-  if (this->AT("+RESTART") != 0) {
-    return 0;
+
+  if (mode == 0) {
+    sprintf(args, "=%d", mode);
+    if (this->AT("+WFMODE", args) != 0) {
+      return 0;
+    }
+  
+    if (this->AT("+RESTART") != 0) {
+      return 0;
+    }
+  } else {
+    if (this->AT("+DEFAP", NULL, 5000) != 0) {
+      return 0;
+    }
   }
 
   for (unsigned long start = millis(); (millis() - start) < 5000;) {
