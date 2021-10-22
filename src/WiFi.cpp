@@ -119,11 +119,6 @@ int WiFiClass::begin(const char* ssid, uint8_t key_idx, const char* key, uint8_t
 
   disconnect();
 
-  if (this->AT("+WFDIS", "=0") != 0) {
-    _status = WL_CONNECT_FAILED;
-    return _status;
-  }
-
   if (!setMode(0)) {
     _status = WL_CONNECT_FAILED;
     return _status;
@@ -753,6 +748,13 @@ int WiFiClass::init()
   this->AT("+CLRDPMSLPEXT");
 
   if (this->AT("Z") != 0) {
+    end();
+
+    return 0;
+  }
+
+
+  if (this->AT("+WFDIS", "=1") != 0) {
     end();
 
     return 0;
