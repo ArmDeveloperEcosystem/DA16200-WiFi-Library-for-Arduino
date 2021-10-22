@@ -55,13 +55,12 @@ const char* WiFiClass::firmwareVersion()
     }
   }
 
-  if (this->AT("+VER") != 0) {
+  if (this->AT("+VER") != 0 || !_extendedResponse.startsWith("+VER:")) {
     return "";
   }
 
   memset(_firmwareVersion, 0x00, sizeof(_firmwareVersion));
 
-  // TODO: validate prefix
   strncpy(_firmwareVersion, _extendedResponse.c_str() + 5, sizeof(_firmwareVersion) - 1);
 
   return _firmwareVersion;
@@ -77,13 +76,12 @@ uint8_t* WiFiClass::macAddress(uint8_t* mac)
     }
   }
 
-  if (this->AT("+WFMAC", "=?") != 0) {
+  if (this->AT("+WFMAC", "=?") != 0 || !_extendedResponse.startsWith("+WFMAC:")) {
     return mac;
   }
 
   int tmpMac[6] = { 0, 0, 0, 0, 0, 0};
 
-  // TODO: validate prefix
   sscanf(_extendedResponse.c_str(), "+WFMAC:%x:%x:%x:%x:%x:%x",
          &tmpMac[5], &tmpMac[4], &tmpMac[3], &tmpMac[2], &tmpMac[1], &tmpMac[0]);
 
@@ -333,8 +331,7 @@ const char* WiFiClass::SSID()
 {
   _ssid[0] = '\0';
 
-  if (this->AT("+WFSTAT") == 0) {
-    // TODO: validate prefix
+  if (this->AT("+WFSTAT") == 0 && _extendedResponse.startsWith("+WFSTAT:")) {
     int ssidIndex = _extendedResponse.indexOf("\nssid=");
     if (ssidIndex != -1) {
       sscanf(_extendedResponse.c_str() + ssidIndex + 1, "ssid=%32[^\n]\n", _ssid);
@@ -350,8 +347,7 @@ uint8_t* WiFiClass::BSSID(uint8_t* bssid)
 
   int tmpBssid[6] = { 0, 0, 0, 0, 0, 0 };
 
-  if (this->AT("+WFSTAT") == 0) {
-    // TODO: validate prefix
+  if (this->AT("+WFSTAT") == 0 && _extendedResponse.startsWith("+WFSTAT:")) {
     int bssidIndex = _extendedResponse.indexOf("\nbssid=");
     if (bssidIndex != -1) {
       sscanf(
@@ -372,8 +368,7 @@ int32_t WiFiClass::RSSI()
 {
   int rssi = 0;
 
-  if (this->AT("+WFRSSI") == 0) {
-    // TODO: validate prefix
+  if (this->AT("+WFRSSI") == 0 && _extendedResponse.startsWith("+RSSI:")) {
     sscanf(_extendedResponse.c_str(), "+RSSI:%d", &rssi);
   }
 
@@ -384,8 +379,7 @@ uint8_t WiFiClass::encryptionType()
 {
   uint8_t encType = ENC_TYPE_UNKNOWN;
 
-  if (this->AT("+WFSTAT") == 0) {
-    // TODO: validate prefix
+  if (this->AT("+WFSTAT") == 0 && _extendedResponse.startsWith("+WFSTAT:")) {
     if (_extendedResponse.indexOf("key_mgmt=WPA2-AUTO") != -1) { // TODO: verify
       encType = ENC_TYPE_AUTO;
     } else if (_extendedResponse.indexOf("key_mgmt=WPA2-PSK") != -1) {
@@ -417,14 +411,13 @@ int8_t WiFiClass::scanNetworks()
     }
   }
 
-  if (this->AT("+WFSCAN", NULL, 5000) != 0) {
+  if (this->AT("+WFSCAN", NULL, 5000) != 0 || !_extendedResponse.startsWith("+WFSCAN:")) {
     _status = WL_NO_SSID_AVAIL;
     return -1;
   }
 
   int numSsid = -1;
 
-  // TODO: validate prefix
   _scanExtendedResponse = _extendedResponse.substring(8);
 
   for (int i = 0; i < _scanExtendedResponse.length(); i++) {
@@ -530,13 +523,12 @@ int WiFiClass::hostByName(const char* aHostname, IPAddress& aResult)
   sprintf(args, "=%s", aHostname);
 
   for (int retry = 0; retry < 30; retry++) {
-    if (this->AT("+NWHOST", args, 10000) != 0) {
+    if (this->AT("+NWHOST", args, 10000) != 0 || !_extendedResponse.startsWith("+NWHOST:")) {
       return 0;
     }
 
     int ipAddr[4] = { 0, 0, 0, 0 };
 
-    // TODO: validate prefix
     sscanf(
       _extendedResponse.c_str(), "+NWHOST:%d.%d.%d.%d\n",
       &ipAddr[0], &ipAddr[1], &ipAddr[2], &ipAddr[3]
@@ -587,7 +579,7 @@ int WiFiClass::ping(IPAddress host)
   int result = this->AT("+NWPING", args, 10000);
   if (result == -100) {
     return WL_PING_TIMEOUT;
-  } else if (result != 0) {
+  } else if (result != 0 || !_extendedResponse.startsWith("+NWPING:")) {
     return WL_PING_ERROR;
   }
 
@@ -597,7 +589,6 @@ int WiFiClass::ping(IPAddress host)
   int minTime = 0;
   int maxTime = 0;
 
-  // TODO: validate prefix
   sscanf(
     _extendedResponse.c_str(), "+NWPING:%d,%d,%d,%d,%d\n",
     &sentCount, &recvCount, &avgTime, &minTime, &maxTime
@@ -920,13 +911,12 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
 
 int WiFiClass::getNetworkIpInfo(int* iface, uint32_t* ipAddr, uint32_t* netmask, uint32_t* gw)
 {
-  if (this->AT("+NWIP=?") == 0) {
+  if (this->AT("+NWIP=?") == 0 && _extendedResponse.startsWith("+NWIP:")) {
     int ifaceTmp;
     int ipAddrOctets[4] = {0, 0, 0, 0};
     int netmaskOctets[4] = {0, 0, 0, 0};
     int gwOctets[4] = {0, 0, 0, 0};
 
-    // TODO: validate prefix
     sscanf(
       _extendedResponse.c_str(),
       "+NWIP:%d,%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d",
@@ -965,7 +955,6 @@ void WiFiClass::onExtendedResponseHandler(void* context, const char* prefix, Str
 
 void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
 {
-  // TODO: check prefix
   if (strcmp("+TRDTC:", prefix) == 0 || strcmp("+TRDTS:", prefix) == 0 || strcmp("+TRDUS:", prefix) == 0) {
     int commaCount = 0;
 
