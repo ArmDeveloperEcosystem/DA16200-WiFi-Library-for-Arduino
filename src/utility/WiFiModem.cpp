@@ -1,5 +1,9 @@
 #include "WiFiModem.h"
 
+#if __has_include(<ArduinoLowPower.h>)
+#include <ArduinoLowPower.h>)
+#endif
+
 WiFiModem::WiFiModem(HardwareSerial& serial, int rtcWakePin, int wakeUpPin) :
   _serial(&serial),
   _rtcWakePin(rtcWakePin),
@@ -115,8 +119,11 @@ void WiFiModem::onExtendedResponse(void(*handler)(void*, const char*, Stream&), 
 
 void WiFiModem::onIrq(void (*handler)(void))
 {
-  pinMode(_wakeUpPin, INPUT);
+  pinMode(_wakeUpPin, INPUT_PULLUP);
   attachInterrupt(_wakeUpPin, handler, RISING);
+#if __has_include(<ArduinoLowPower.h>)
+  LowPower.attachInterruptWakeup(_wakeUpPin, handler, RISING);
+#endif
 }
 
 int WiFiModem::available()
