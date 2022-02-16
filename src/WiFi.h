@@ -105,7 +105,7 @@ class WiFiClass {
     friend class WiFiServer;
     friend class WiFiUDP;
 
-    int AT(const char* command = "", const char* args = NULL, int timeout = 1000);
+    int AT(const char* command = "", const char* args = NULL, int timeout = 2000);
     int ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, int timeout = 1000);
 
     void poll(unsigned long timeout);
