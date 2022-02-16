@@ -54,7 +54,7 @@ uint8_t WiFiClass::reasonCode()
   if (_status == WL_NO_SHIELD) {
     init();
 
-    return _status;
+    return reason;
   }
 
   if (this->AT("+WFSTAT") == 0 && _extendedResponse.startsWith("+WFSTAT:")) {
@@ -289,7 +289,7 @@ int WiFiClass::disconnect()
 
 void WiFiClass::config(IPAddress local_ip)
 {
-  IPAddress dns_server(0, 0, 0, 0);
+  IPAddress dns_server(local_ip[0], local_ip[1], local_ip[2], 1);
 
   config(local_ip, dns_server);
 }
