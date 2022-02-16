@@ -26,9 +26,11 @@ WiFiClient::~WiFiClient()
 
 int WiFiClient::connect(IPAddress ip, uint16_t port)
 {
-  if (_inst != NULL) {
+  if (_inst != NULL && _inst != this) {
     return 0;
   }
+
+  stop();
 
   char args[1 + 15 + 1 + 5 + 1 + 5 + 1];
 
@@ -98,7 +100,10 @@ int WiFiClient::available()
     return 0;
   }
 
-  WiFi.poll(0);
+
+  if (WiFi.socketBuffer().available(_cid) == 0) {
+    WiFi.poll(0);
+  }
 
   if (WiFi.socketBuffer().remoteIP(_cid) != _remoteIp || WiFi.socketBuffer().remotePort(_cid) != _remotePort) {
     return 0;
