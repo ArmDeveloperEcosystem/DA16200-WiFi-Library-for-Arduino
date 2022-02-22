@@ -79,13 +79,13 @@ const char* WiFiClass::firmwareVersion()
     }
   }
 
-  if (this->AT("+VER") != 0 || !_extendedResponse.startsWith("+VER:")) {
+  if (this->AT("+SDKVER") != 0 || !_extendedResponse.startsWith("+SDKVER:")) {
     return "";
   }
 
   memset(_firmwareVersion, 0x00, sizeof(_firmwareVersion));
 
-  strncpy(_firmwareVersion, _extendedResponse.c_str() + 5, sizeof(_firmwareVersion) - 1);
+  strncpy(_firmwareVersion, _extendedResponse.c_str() + 8, sizeof(_firmwareVersion) - 1);
 
   return _firmwareVersion;
 }

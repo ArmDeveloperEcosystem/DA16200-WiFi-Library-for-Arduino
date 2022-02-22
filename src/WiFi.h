@@ -38,7 +38,7 @@ typedef enum {
   WL_PING_ERROR = -4
 } wl_ping_result_t;
 
-#define WIFI_FIRMWARE_LATEST_VERSION "FRTOS-GEN01-01-15022-000000"
+#define WIFI_FIRMWARE_LATEST_VERSION "3.1.2.0"
 
 class WiFiClass {
   public:
