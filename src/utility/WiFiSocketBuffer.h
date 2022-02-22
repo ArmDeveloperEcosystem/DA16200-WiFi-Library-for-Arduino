@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2022 Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: LGPL-2.1
+ * 
+ */
+
 #ifndef _WIFI_SOCKET_BUFFER_H_
 #define _WIFI_SOCKET_BUFFER_H_
 

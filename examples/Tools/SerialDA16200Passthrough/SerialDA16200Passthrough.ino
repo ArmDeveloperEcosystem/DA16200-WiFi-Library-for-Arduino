@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2022 Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: LGPL-2.1
+ *
+ * This example can be used to issue AT commands manually via the
+ * serial monitor
+ *
+ *  Circuit:
+ *  - SparkFun Qwiic WiFi Shield - DA16200 attached
+ * 
+ */
+
 void setup() {
   Serial.begin(115200);
   while (!Serial); // wait for the serial monitor to be opened
