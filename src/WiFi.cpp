@@ -16,12 +16,12 @@
 
 WiFiClass::WiFiClass(HardwareSerial& serial, int rtcWakePin, int wakeUpPin) :
   _modem(serial, rtcWakePin, wakeUpPin),
+  _irq(0),
   _status(WL_NO_SHIELD),
   _interface(0),
   _numConnectedSta(0),
   _lowPowerMode(0),
-  _timeout(WIFI_DEFAULT_TIMEOUT),
-  _irq(0)
+  _timeout(WIFI_DEFAULT_TIMEOUT)
 {
   _extendedResponse.reserve(64);
   _scanCache.networkItem = 255;
@@ -453,7 +453,7 @@ int8_t WiFiClass::scanNetworks()
 
   _scanExtendedResponse = _extendedResponse.substring(8);
 
-  for (int i = 0; i < _scanExtendedResponse.length(); i++) {
+  for (unsigned int i = 0; i < _scanExtendedResponse.length(); i++) {
     if (_scanExtendedResponse[i] == '\n') {
       numSsid++;
     }
@@ -641,7 +641,7 @@ unsigned long WiFiClass::getTime()
   if (this->AT("+TIME", "=?") == 0) {
     struct tm tm;
 
-    memset(&tm, 0x00, sizeof(&tm));
+    memset(&tm, 0x00, sizeof(tm));
 
     sscanf(
       _extendedResponse.c_str(), "+TIME:%d-%d-%d,%d:%d:%d\n",
@@ -856,7 +856,7 @@ int WiFiClass::setMode(int mode)
 
 int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
 {
-  int index;
+  unsigned int index;
   int startIndex = 0;
   int endIndex = 0;
   int newLineCount = 0;
@@ -884,7 +884,6 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
   char flags[64 + 1];
   int channel = 0;
   uint8_t encType = ENC_TYPE_UNKNOWN;
-  int extra;
 
   _scanCache.ssid[0] = '\0';
 
@@ -897,8 +896,7 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
     &frequency,
     &rssi,
     flags,
-    _scanCache.ssid,
-    &extra
+    _scanCache.ssid
   );
 
   _scanExtendedResponse.setCharAt(endIndex, '\n');
@@ -921,8 +919,6 @@ int WiFiClass::parseScanNetworksItem(uint8_t networkItem)
     case 2484: channel = 14; break;
     default:   channel = 0; break;
   }
-
-  int flagsLength = strlen(flags);
 
   if (strstr(flags, "[WPA-AUTO") != NULL) { // TODO: verify
     encType = ENC_TYPE_AUTO;
@@ -1081,7 +1077,6 @@ void WiFiClass::handleExtendedResponse(const char* prefix, Stream& s)
       int cid;
       int ipAddrOctets[4] = {0, 0, 0, 0};
       int port;
-      int length;
 
       sscanf(
         _extendedResponse.c_str(),

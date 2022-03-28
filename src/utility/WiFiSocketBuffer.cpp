@@ -53,7 +53,7 @@ int WiFiSocketBuffer::read(int cid, uint8_t* buf, size_t size)
 {
   int avail = available(cid);
 
-  if (size > avail) {
+  if (size > (size_t)avail) {
     size = avail;
   }
 

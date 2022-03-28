@@ -41,7 +41,7 @@ void WiFiModem::end()
   detachInterrupt(_wakeUpPin);
 }
 
-int WiFiModem::AT(const char* command, const char* args, int timeout)
+int WiFiModem::AT(const char* command, const char* args, unsigned long timeout)
 {
   poll(0);
 
@@ -56,7 +56,7 @@ int WiFiModem::AT(const char* command, const char* args, int timeout)
   return waitForResponse(timeout);
 }
 
-int WiFiModem::ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, int timeout)
+int WiFiModem::ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, unsigned long timeout)
 {
   this->print("\e");
   this->print(sequence);
@@ -194,7 +194,7 @@ void WiFiModem::noDebug()
   _debug = NULL;
 }
 
-int WiFiModem::waitForResponse(int timeout)
+int WiFiModem::waitForResponse(unsigned long timeout)
 {
   int responseCode = -100;
 
