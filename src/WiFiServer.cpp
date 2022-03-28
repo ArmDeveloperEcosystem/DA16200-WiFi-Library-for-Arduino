@@ -27,6 +27,8 @@ WiFiServer::~WiFiServer()
 
 WiFiClient WiFiServer::available(uint8_t* status)
 {
+  (void)status;
+
   for (int i = 0; i < 2; i++) {
     if (WiFi._socketBuffer.available(_cid)) {
       return WiFiClient(_cid, WiFi.socketBuffer().remoteIP(_cid), WiFi.socketBuffer().remotePort(_cid));
@@ -105,6 +107,8 @@ uint8_t WiFiServer::status()
 
 void WiFiServer::connect(int cid, IPAddress ip, uint16_t port)
 {
+  (void)cid;
+
   for (int i = 0; i < WIFI_SERVER_MAX_CLIENTS; i++) {
     if ((uint32_t)_clients[i].remoteIp == 0 && _clients[i].remotePort == 0) {
       _clients[i].remoteIp = ip;
@@ -117,6 +121,8 @@ void WiFiServer::connect(int cid, IPAddress ip, uint16_t port)
 
 bool WiFiServer::connected(int cid, IPAddress ip, uint16_t port)
 {
+  (void)cid;
+
   for (int i = 0; i < WIFI_SERVER_MAX_CLIENTS; i++) {
     if (_clients[i].remoteIp == ip && _clients[i].remotePort == port) {
       return true;
@@ -128,6 +134,8 @@ bool WiFiServer::connected(int cid, IPAddress ip, uint16_t port)
 
 void WiFiServer::disconnect(int cid, IPAddress ip, uint16_t port)
 {
+  (void)cid;
+
   for (int i = 0; i < WIFI_SERVER_MAX_CLIENTS; i++) {
     if (_clients[i].remoteIp == ip && _clients[i].remotePort == port) {
       _clients[i].remoteIp = (uint32_t)0;

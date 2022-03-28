@@ -139,7 +139,7 @@ int WiFiClient::read(uint8_t* buf, size_t size)
   }
 
   int avail = available();
-  if (size > avail) {
+  if (size > (size_t)avail) {
     size = avail;
   }
 

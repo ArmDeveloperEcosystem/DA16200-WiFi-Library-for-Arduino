@@ -21,8 +21,8 @@ class WiFiModem : public Stream {
     void onExtendedResponse(void (*handler)(void*, const char*, Stream&), void* context);
     void onIrq(void (*handler)(void));
 
-    int AT(const char* command, const char* args, int timeout);
-    int ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, int timeout);
+    int AT(const char* command, const char* args, unsigned long timeout);
+    int ESC(const char* sequence, const char* args, const uint8_t* buffer, int length, unsigned long timeout);
 
     void poll(unsigned long timeout);
 
@@ -43,7 +43,7 @@ class WiFiModem : public Stream {
     void noDebug();
 
   private:
-    int waitForResponse(int timeout);
+    int waitForResponse(unsigned long timeout);
 
   private:
     HardwareSerial* _serial;
