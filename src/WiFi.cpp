@@ -283,7 +283,7 @@ uint8_t WiFiClass::beginAP(const char *ssid, const char* key, uint8_t channel)
   return _status;
 }
 
-int WiFiClass::disconnect()
+void WiFiClass::disconnect()
 {
   if (_interface == 0) {
     this->AT("+WFQAP");

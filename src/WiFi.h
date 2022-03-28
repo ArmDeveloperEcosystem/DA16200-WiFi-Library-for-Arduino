@@ -66,7 +66,7 @@ class WiFiClass {
     uint8_t beginAP(const char *ssid, const char* key);
     uint8_t beginAP(const char *ssid, const char* key, uint8_t channel);
 
-    int disconnect();
+    void disconnect();
 
     void config(IPAddress local_ip);
     void config(IPAddress local_ip, IPAddress dns_server);
