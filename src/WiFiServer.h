@@ -8,6 +8,7 @@
 #ifndef _WIFI_SERVER_H_
 #define _WIFI_SERVER_H_
 
+#include <Arduino.h>
 #include <IPAddress.h>
 #include <Stream.h>
 

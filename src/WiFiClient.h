@@ -9,7 +9,11 @@
 #define _WIFI_CLIENT_H_
 
 #include <Client.h>
+#if __has_include(<api/RingBuffer.h>)
+#include <api/RingBuffer.h>
+#else
 #include <RingBuffer.h>
+#endif
 
 class WiFiClient : public Client {
   public:
