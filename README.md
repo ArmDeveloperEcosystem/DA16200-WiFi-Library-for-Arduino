@@ -4,7 +4,7 @@ Wi-Fi enable your Arduino sketches using [Dialog's DA16200 Module](https://www.d
 
 Includes support for the [SparkFun's "Qwiic WiFi Shield - DA16200"](https://www.sparkfun.com/products/18567). **Requires firmware version `3.1.2.0` or later.**
 
-Currently compatible with `samd` based Arduino boards, such as the [Arduino Zero](https://store-usa.arduino.cc/products/arduino-zero), [SparkFun RedBoard Turbo - SAMD21 Development Board](https://www.sparkfun.com/products/14812). Please open a pull request if you've succesfully used this library with another architecture.
+Currently compatible with `samd` and `mbed_nano` based Arduino boards, such as the [Arduino Zero](https://store-usa.arduino.cc/products/arduino-zero), [SparkFun RedBoard Turbo - SAMD21 Development Board](https://www.sparkfun.com/products/14812), and [Arduino Nano 33 BLE](https://store-usa.arduino.cc/collections/nano-family/products/arduino-nano-33-ble). Please open a pull request if you've succesfully used this library with another architecture.
 
 ## Usage
 
