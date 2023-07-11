@@ -1,3 +1,7 @@
+1.1.0 - 2023.07.11
+
+* Add support for mbed_nano architecture
+
 1.0.1 - 2022.03.28
 
 * Correct return type of WiFi.disconnect()
